@@ -13,6 +13,12 @@
 # Update the system clock
 timedatectl set-ntp true
 
+# Format the root partition
+mkfs.ext4 -L root /dev/vda2
+
+# Format the boot partition
+mkfs.fat -n ESP -F32 /dev/vda1
+
 # Mount partitions
 mount /dev/vda2 /mnt
 mkdir -p /mnt/boot
@@ -99,10 +105,10 @@ echo 'Section "InputClass"
   Option "XkbLayout" "fr"
   Option "XkbModel" "pc105"
   Option "XkbVariant" "mac"
-EndSection' > /etc/X11/xorg.conf.d/00-keyboard.conf
+EndSection' > /mnt/etc/X11/xorg.conf.d/00-keyboard.conf
 
 echo "options hid_apple iso_layout = 0
-options hid_apple fnmode = 1" > /etc/modprobe.d/hid_apple.conf
+options hid_apple fnmode = 1" > /mnt/etc/modprobe.d/hid_apple.conf
 
 # Making a 8G swap file
 dd if=/dev/zero of=/mnt/swapfile bs=1M count=8192 status=progress
