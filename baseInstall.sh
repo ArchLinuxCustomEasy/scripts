@@ -25,7 +25,7 @@ mkdir -p /mnt/boot
 mount /dev/vda1 /mnt/boot
 
 # Install base system
-pacstrap /mnt base linux linux-firmware vim nano intel-ucode bash-completion openssh rsync
+pacstrap /mnt base linux linux-firmware vim nano intel-ucode bash-completion git openssh rsync
 
 # pacman configuration
 cp /etc/pacman.conf /mnt/etc/pacman.conf
