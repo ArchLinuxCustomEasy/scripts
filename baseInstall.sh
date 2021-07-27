@@ -35,7 +35,8 @@ sed -i "s/# Misc options/# Misc options\nColor\nParallelDownloads=6\nVerbosePkgL
 
 ln -sf /usr/share/zoneinfo/Europe/Paris /mnt/etc/localtime
 arch-chroot /mnt hwclock --systohc
-echo "LANG=fr_FR.UTF-8\nLC_COLLATE=C" > /mnt/etc/locale.conf
+echo "LANG=fr_FR.UTF-8
+LC_COLLATE=C" > /mnt/etc/locale.conf
 echo "KEYMAP=fr" > /mnt/etc/vconsole.conf
 echo "arch" > /mnt/etc/hostname
 echo "127.0.0.1     localhost
