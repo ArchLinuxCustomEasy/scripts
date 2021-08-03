@@ -1,126 +1,315 @@
 #!/bin/bash
 
-# cpuType = $(lscpu | grep GenuineIntel)
-# diskList = $(lsblk -d -p -n -l -o NAME,SIZE -e 7,11)
-# partitionList = $(lsblk -p -n -l -o NAME -e 7,11)
-# partUuid = $(blkid -s PARTUUID -o value /dev/vda2)
-# partType = $(blkid -s TYPE -o value /dev/vda2)
-# use cgdisk to manually make partitions on disk: cgdisk /dev/vda
-# format partition (ext4) with label: mkfs.ext4 -L root /dev/vda2
-# format partition (fat32) with label: mkfs.fat -n ESP -F32 /dev/vda1
-# Libvirt services: libvirtd virtlogd
+diskList=$(lsblk -d -p -n -l -o NAME,SIZE -e 7,11)
+partitionList=$(lsblk -p -n -l -o NAME,SIZE -e 7,11)
+installationDisk=''
+bootPartition=''
+rootPartition=''
+hostName=''
+userName=''
+userPassword=''
+rootPassword=''
+swapfileSize=''
 
-# Update the system clock
-timedatectl set-ntp true
+printMessage() {
+  message=$1
+  tput setaf 2
+  echo "-------------------------------------------"
+  echo "$message"
+  echo "-------------------------------------------"
+  tput sgr0
+}
 
-# Format the root partition
-mkfs.ext4 -L root /dev/vda2
+# Helper function to handle errors
+handleError() {
+  clear
+  set -uo pipefail
+  trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
+}
 
-# Format the boot partition
-mkfs.fat -n ESP -F32 /dev/vda1
+selectInstallDisk() {
+  printMessage "Select the installation disk:
+  ${diskList}"
+  list=$(lsblk -d -p -n -l -o NAME -e 7)
+  select disk in ${list}
+  do
+    if [[ "$REPLY" == 'q' ]]; then exit; fi
 
-# Mount partitions
-mount /dev/vda2 /mnt
-mkdir -p /mnt/boot
-mount /dev/vda1 /mnt/boot
+    if [[ "$disk" == "" ]]
+    then
+      echo "'$REPLY' is not a valid number"
+      continue
+    fi
 
-# Install base system
-pacstrap /mnt base linux linux-firmware vim nano intel-ucode bash-completion git openssh rsync
+    installationDisk+=$disk
+    break
+  done
+}
 
-# pacman configuration
-cp /etc/pacman.conf /mnt/etc/pacman.conf
-sed -i "s/# Misc options/# Misc options\nColor\nParallelDownloads=6\nVerbosePkgLists\nILoveCandy/" /mnt/etc/pacman.conf
+makeDiskPartitions() {
+  printMessage "Make disk partitions? Y/N"
+  read choice
+  case $choice in
+    Y )
+      printMessage "Make partitions on ${installationDisk}"
+      cgdisk ${installationDisk}
+    ;;
+    N )
+      printMessage "Continue..."
+      continue
+    ;;
+  esac
+}
 
-# networkmanager network-manager-applet dialog wpa_supplicant mtools dosfstools xdg-user-dirs xdg-utils gvfs gvfs-smb nfs-utils bluez bluez-utils blueman pulseaudio-bluetooth alsa-utils tlp sof-firmware acpid ntfs-3g terminus-font
+selectRootPartition() {
+  printMessage "Choose the root partition from the list"
+  list=$(lsblk -p -n -l -o NAME -e 7 $installationDisk)
+  select rootPart in ${list}
+  do
+    if [[ "$REPLY" == 'q' ]]; then exit; fi
 
-ln -sf /usr/share/zoneinfo/Europe/Paris /mnt/etc/localtime
-arch-chroot /mnt hwclock --systohc
-echo "LANG=fr_FR.UTF-8
-LC_COLLATE=C" > /mnt/etc/locale.conf
-echo "KEYMAP=fr" > /mnt/etc/vconsole.conf
-echo "arch" > /mnt/etc/hostname
-echo "127.0.0.1     localhost
-::1     localhost
-127.0.1.1       arch.local arch" > /mnt/etc/hosts
-sed -i '/#fr_FR.UTF-8/s/^#//g' /mnt/etc/locale.gen
-arch-chroot /mnt locale-gen
+    if [[ "$rootPart" == "" ]]
+    then
+      echo "'$REPLY' is not a valid number"
+      continue
+    fi
 
-echo root:toor | arch-chroot /mnt chpasswd
+    rootPartition=$rootPart
+    break
+  done
+}
 
-genfstab -U /mnt >> /mnt/etc/fstab
+selectBootPartition() {
+  printMessage "Choose the boot partition from the list"
+  list=$(lsblk -p -n -l -o NAME -e 7 $installationDisk)
+  select bootPart in ${list}
+  do
+    if [[ "$REPLY" == 'q' ]]; then exit; fi
 
-# systemd-boot install
-arch-chroot /mnt bootctl install
+    if [[ "$bootPart" == "" ]]
+    then
+      echo "'$REPLY' is not a valid number"
+      continue
+    fi
 
-# systemd-boot pacman hook
-mkdir -p /mnt/etc/pacman.d/hooks
+    bootPartition=$bootPart
+    break
+  done
+}
 
-echo "[Trigger]
-Type = Package
-Operation = Upgrade
-Target = systemd
+chooseHostname() {
+  read -p "Type a hostname: " choiceHostname
+  hostName=$choiceHostname
+}
 
-[Action]
-Description = Updating systemd-boot
-When = PostTransaction
-Exec = /usr/bin/bootctl update" > /mnt/etc/pacman.d/hooks/100-systemd-boot.hook
+chooseSwapfileSize() {
+  read -p "Type a size in Go for the swapfile: " choiceSwapfileSize
+  swapfileSize=$(expr $choiceSwapfileSize \* 1024)
+}
 
-# archlinux entries for systemd-boot
-echo "title     Arch Linux
-linux       /vmlinuz-linux
-initrd      /intel-ucode.img
-initrd      /initramfs-linux.img
-options     root=PARTUUID=$(blkid -s PARTUUID -o value /dev/vda2) rw" > /mnt/boot/loader/entries/archlinux.conf
+chooseUsername() {
+  read -p "Type a username: " choiceUsername
+  userName=$choiceUsername
+}
 
-# archlinux-fallback entries for systemd-boot
-echo "title     Arch Linux (fallback initramfs)
-linux       /vmlinuz-linux
-initrd      /intel-ucode.img
-initrd      /initramfs-linux-fallback.img
-options     root=PARTUUID=$(blkid -s PARTUUID -o value /dev/vda2) rw" > /mnt/boot/loader/entries/archlinux-fallback.conf
+chooseUserPassword() {
+  read -s -p "Type the user password: " choiceUserPassword; echo
+  userPassword=$choiceUserPassword
+}
 
-# systemd-boot configuration
-echo "default  arch*.conf
-timeout  1" > /mnt/boot/loader/loader.conf
+chooseRootPassword() {
+  read -s -p "Type the root password: " choiceRootPassword; echo
+  rootPassword=$choiceRootPassword
+}
 
-# Update systemd-boot
-arch-chroot /mnt bootctl update
+formatPartitions() {
+  printMessage "Formatting boot partition"
+  mkfs.fat -n ESP -F32 $bootPartition
+  printMessage "Formatting root partition"
+  mkfs.ext4 -L root $rootPartition
+}
 
+mountPartitions() {
+  printMessage "Mounting root partition"
+  mount $rootPartition /mnt
+  mkdir -p /mnt/boot
+  printMessage "Mounting boot partition"
+  mount $bootPartition /mnt/boot
+}
 
-pacstrap /mnt base-devel linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils dnsutils nss-mdns reflector avahi xorg xorg-{xinit,twm,apps}
-# enable all necessary services
-arch-chroot /mnt systemctl enable sshd avahi-daemon reflector.timer fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
-reflector --country France --protocol https --age 6 --sort rate --verbose --save /mnt/etc/pacman.d/mirrorlist
+makeSwapFile() {
+  printMessage "Creating the swapfile"
+  dd if=/dev/zero of=/mnt/swapfile bs=1M count=$swapfileSize status=progress
+  printMessage "Changing permissions on swapfile"
+  chmod 600 /mnt/swapfile
+  printMessage "Mounting/enable the swapfile"
+  mkswap /mnt/swapfile
+  swapon /mnt/swapfile
+}
 
-# NetworkManager bluetooth
+installBaseSystemInChroot() {
+  printMessage "Installing the base system in chroot"
+  pacstrap /mnt base linux linux-firmware vim nano intel-ucode bash-completion git openssh rsync
+}
 
-arch-chroot /mnt useradd -m tuxi
-echo tuxi:tuxi | arch-chroot /mnt chpasswd
-arch-chroot /mnt usermod -aG wheel,audio,optical,storage,video tuxi
+baseConfigurationInChroot() {
+  printMessage "Changing pacman configuration in chroot"
+  cp /etc/pacman.conf /mnt/etc/pacman.conf
+  sed -i "s/# Misc options/# Misc options\nColor\nParallelDownloads=6\nVerbosePkgLists\nILoveCandy/" /mnt/etc/pacman.conf
 
-echo "%wheel ALL=(ALL) ALL" >> /mnt/etc/sudoers.d/wheel
+  printMessage "Timezone configuration in chroot"
+  ln -sf /usr/share/zoneinfo/Europe/Paris /mnt/etc/localtime
+  
+  printMessage "Locale configuration in chroot"
+  sed -i '/#fr_FR.UTF-8/s/^#//g' /mnt/etc/locale.gen
+  echo "LANG=fr_FR.UTF-8
+  LC_COLLATE=C" > /mnt/etc/locale.conf
 
-echo 'Section "InputClass"
-  Identifier "system-keyboard"
-  MatchIsKeyboard "on"
-  Option "XkbLayout" "fr"
-  Option "XkbModel" "pc105"
-  Option "XkbVariant" "mac"
-EndSection' > /mnt/etc/X11/xorg.conf.d/00-keyboard.conf
+  printMessage "Console keyboard configuration in chroot"
+  echo "KEYMAP=fr" > /mnt/etc/vconsole.conf
 
-echo "options hid_apple iso_layout = 0
-options hid_apple fnmode = 1" > /mnt/etc/modprobe.d/hid_apple.conf
+  printMessage "Hostname configuration in chroot"
+  echo "$hostName" > /mnt/etc/hostname
+  echo "127.0.0.1     localhost
+  ::1     localhost
+  127.0.1.1       $hostName.local $hostName" > /mnt/etc/hosts
+}
 
-# Making a 8G swap file
-dd if=/dev/zero of=/mnt/swapfile bs=1M count=8192 status=progress
-chmod 600 /mnt/swapfile
-mkswap /mnt/swapfile
-swapon /mnt/swapfile
-echo "/swapfile none swap defaults 0 0" >> /mnt/etc/fstab
+systemConfigurationInChroot() {
+  printMessage "Updating system clock"
+  timedatectl set-ntp true
 
-# Reduce swap usage
-echo "vm.swappiness=10
-vm.vfs_cache_pressure=50" > /mnt/etc/sysctl.d/99-swappiness.conf
+  printMessage "Setting hardware clock from system clock"
+  arch-chroot /mnt hwclock --systohc
 
-# Umount partitions
-umount -R /mnt
+  printMessage "Generating locales"
+  arch-chroot /mnt locale-gen
+
+  printMessage "Changing root password"
+  echo root:$rootPassword | arch-chroot /mnt chpasswd
+
+  printMessage "Generating fstab"
+  genfstab -U /mnt >> /mnt/etc/fstab
+
+  printMessage "Optimizing swap usage"
+  echo "vm.swappiness=10
+  vm.vfs_cache_pressure=50" > /mnt/etc/sysctl.d/99-swappiness.conf
+
+  printMessage "Adding swapfile to fstab"
+  echo "/swapfile none swap defaults 0 0" >> /mnt/etc/fstab
+}
+
+bootLoaderInChroot() {
+  rootPartUuid=$(blkid -s PARTUUID -o value $rootPartition)
+
+  printMessage "Installing systemd-boot"
+  arch-chroot /mnt bootctl install
+
+  printMessage "Systemd-boot pacman hook"
+  mkdir -p /mnt/etc/pacman.d/hooks
+  echo "[Trigger]
+  Type = Package
+  Operation = Upgrade
+  Target = systemd
+  [Action]
+  Description = Updating systemd-boot
+  When = PostTransaction
+  Exec = /usr/bin/bootctl update" > /mnt/etc/pacman.d/hooks/100-systemd-boot.hook
+
+  printMessage "Systemd-boot entries configuration"
+  echo "title     Arch Linux
+  linux       /vmlinuz-linux
+  initrd      /intel-ucode.img
+  initrd      /initramfs-linux.img
+  options     root=PARTUUID=${rootPartUuid} rw" > /mnt/boot/loader/entries/archlinux.conf
+  echo "title     Arch Linux (fallback initramfs)
+  linux       /vmlinuz-linux
+  initrd      /intel-ucode.img
+  initrd      /initramfs-linux-fallback.img
+  options     root=PARTUUID=${rootPartUuid} rw" > /mnt/boot/loader/entries/archlinux-fallback.conf
+
+  printMessage "Systemd-boot loader configuration"
+  echo "default  arch*.conf
+  timeout  1" > /mnt/boot/loader/loader.conf
+
+  printMessage "Systemd-boot update"
+  arch-chroot /mnt bootctl update
+}
+
+endInstallation() {
+  printMessage "Adding common utilities"
+  pacstrap /mnt base-devel linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils dnsutils nss-mdns reflector avahi xorg xorg-{xinit,twm,apps}
+  
+  printMessage "Starting services"
+  arch-chroot /mnt systemctl enable sshd avahi-daemon reflector.timer fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
+
+  printMessage "Generating mirrorlist"
+  reflector --country France --protocol https --age 6 --sort rate --verbose --save /mnt/etc/pacman.d/mirrorlist
+
+  printMessage "Adding the user"
+  arch-chroot /mnt useradd -m $userName
+
+  printMessage "Adding the user password"
+  echo $userName:$userPassword | arch-chroot /mnt chpasswd
+
+  printMessage "Adding the user in some groups"
+  arch-chroot /mnt usermod -aG wheel,audio,optical,storage,video $userName
+
+  printMessage "Adding the user in sudoers"
+  echo "%wheel ALL=(ALL) ALL" >> /mnt/etc/sudoers.d/wheel
+
+  printMessage "Adding keyboard configuration in xorg"
+  echo 'Section "InputClass"
+    Identifier "system-keyboard"
+    MatchIsKeyboard "on"
+    Option "XkbLayout" "fr"
+    Option "XkbModel" "pc105"
+    Option "XkbVariant" "mac"
+  EndSection' > /mnt/etc/X11/xorg.conf.d/00-keyboard.conf
+
+  printMessage "Adding Apple keyboard module"
+  echo "options hid_apple iso_layout = 0
+  options hid_apple fnmode = 1" > /mnt/etc/modprobe.d/hid_apple.conf
+
+  printMessage "Congratulation! The base system is installed, you can now reboot!"
+}
+
+configureInstallation() {
+  selectInstallDisk
+  makeDiskPartitions
+  selectBootPartition
+  selectRootPartition
+  chooseHostname
+  chooseUsername
+  chooseUserPassword
+  chooseRootPassword
+  chooseSwapfileSize
+  printMessage "
+    Installation Disk: ${disk}
+    Boot Partition: ${bootPartition}
+    Root Partition: ${rootPartition}
+    Hostname: ${hostName}
+    Username: ${userName}
+    User password: ${userPassword}
+    Root password: ${rootPassword}
+    Swap file size: ${swapfileSize}
+    Root partition PARTUUID: ${rootPartUuid}
+  "
+}
+
+main() {
+  handleError
+  configureInstallation
+  formatPartitions
+  mountPartitions
+  makeSwapFile
+  installBaseSystemInChroot
+  baseConfigurationInChroot
+  systemConfigurationInChroot
+  bootLoaderInChroot
+  endInstallation
+}
+
+time main
+
+exit 0
