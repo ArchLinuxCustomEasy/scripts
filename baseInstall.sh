@@ -53,7 +53,7 @@ makeDiskPartitions() {
   case $choice in
     Y )
       printMessage "Make partitions on ${installationDisk}"
-      cgdisk ${installationDisk}
+      gdisk ${installationDisk}
     ;;
     N )
       printMessage "Continue..."
