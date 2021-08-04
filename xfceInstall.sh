@@ -17,6 +17,8 @@ handleError() {
 }
 
 askUpdateMirrorList() {
+  printMessage "Update mirror list"
+  
   PS3="Would you update mirror list: "
   select opt in yes no ; do
   case $opt in
@@ -37,6 +39,8 @@ askUpdateMirrorList() {
 }
 
 askInstallVideoDrivers() {
+  printMessage "Choose video driver video drivers"
+
   PS3="Select which video drivers to install: "
   select opt in nvidia nouveau intel amd default ; do
   case $opt in
@@ -78,6 +82,8 @@ askInstallVideoDrivers() {
 }
 
 askInstallHdwVideoAccLib() {
+  printMessage "Hardware acceleration support"
+  
   PS3="Would you install hardware video acceleration libs: "
   select opt in yes no ; do
   case $opt in
@@ -98,6 +104,8 @@ askInstallHdwVideoAccLib() {
 }
 
 askInstallGstreamerSupport() {
+  printMessage "Gstreamer support"
+  
   PS3="Would you install Gstreamer support tools: "
   select opt in yes no ; do
   case $opt in
@@ -118,6 +126,8 @@ askInstallGstreamerSupport() {
 }
 
 askInstallAudioVideoCodec() {
+  printMessage "Audio/Video codec"
+  
   PS3="Would you install audio/video codecs: "
   select opt in yes no ; do
   case $opt in
@@ -138,6 +148,8 @@ askInstallAudioVideoCodec() {
 }
 
 askInstallBluetoothSupport() {
+  printMessage "Bluetooth support"
+  
   PS3="Would you install bluetooth support: "
   select opt in yes no ; do
   case $opt in
@@ -159,6 +171,8 @@ askInstallBluetoothSupport() {
 }
 
 askInstallBaseFonts() {
+  printMessage "Base fonts"
+  
   PS3="Would you install base fonts: "
   select opt in yes no ; do
   case $opt in
@@ -180,6 +194,8 @@ askInstallBaseFonts() {
 
 # @TODO Separate in more categorized choices, eg. audio utils, archives utils...
 askInstallDesktopUtils() {
+  printMessage "Various desktop utilities"
+  
   PS3="Would you install desktop utilities: "
   select opt in yes no ; do
   case $opt in
@@ -201,11 +217,13 @@ askInstallDesktopUtils() {
 
 # @TODO Add more choices, eg. xfce, i3, openbox, dwm...
 askInstallDesktopManager() {
-  PS3="Would you install desktop xfce desktop + theme: "
+  printMessage "Xfce desktop and theme"
+  
+  PS3="Would you install xfce desktop + theme: "
   select opt in yes no ; do
   case $opt in
     yes)
-      printMessage "Installing desktop xfce desktop + theme"
+      printMessage "Installing xfce desktop + theme"
       sudo pacman -S --noconfirm xorg xorg-{xinit,twm,apps} xdg-{utils,user-dirs} xbindkeys pavucontrol xfce4 xfce4-goodies numlockx firefox firefox-{i18n-fr,ublock-origin} arc-gtk-theme arc-icon-theme papirus-icon-theme materia-gtk-theme kvantum-theme-materia terminus-font vim xed
       break
       ;;
