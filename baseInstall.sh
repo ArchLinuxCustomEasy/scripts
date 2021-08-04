@@ -5,6 +5,7 @@ partitionList=$(lsblk -p -n -l -o NAME,SIZE -e 7,11)
 installationDisk=''
 bootPartition=''
 rootPartition=''
+rootPartUuid=''
 hostName=''
 userName=''
 userPassword=''
@@ -75,6 +76,7 @@ selectRootPartition() {
     fi
 
     rootPartition=$rootPart
+    rootPartUuid=$(blkid -s PARTUUID -o value $rootPartition)
     break
   done
 }
@@ -200,8 +202,6 @@ systemConfigurationInChroot() {
 }
 
 bootLoaderInChroot() {
-  rootPartUuid=$(blkid -s PARTUUID -o value $rootPartition)
-
   printMessage "Installing systemd-boot"
   arch-chroot /mnt bootctl install
 
