@@ -255,9 +255,6 @@ systemConfigurationInChroot() {
   printMessage "Optimizing swap usage"
   echo "vm.swappiness=10
   vm.vfs_cache_pressure=50" > /mnt/etc/sysctl.d/99-swappiness.conf
-
-  printMessage "Adding swapfile to fstab"
-  echo "/swapfile none swap defaults 0 0" >> /mnt/etc/fstab
 }
 
 bootLoaderInChroot() {
