@@ -29,8 +29,9 @@ handleError() {
 }
 
 selectInstallDisk() {
-  printMessage "Select the installation disk:
-  ${diskList}"
+  printMessage "Installation disk"
+
+  PS3="Select the installation disk: "
   list=$(lsblk -d -p -n -l -o NAME -e 7)
   select disk in ${list}
   do
@@ -38,7 +39,7 @@ selectInstallDisk() {
 
     if [[ "$disk" == "" ]]
     then
-      echo "'$REPLY' is not a valid number"
+      echo "Invalid option $REPLY"
       continue
     fi
 
@@ -48,30 +49,37 @@ selectInstallDisk() {
 }
 
 makeDiskPartitions() {
-  printMessage "Make disk partitions? Y/N"
-  read choice
-  case $choice in
-    Y )
+  printMessage "Disk partition"
+
+  PS3="Make disk partitions? "
+  select opt in yes no ; do
+  case $opt in
+    yes )
       printMessage "Make partitions on ${installationDisk}"
       gdisk ${installationDisk}
-    ;;
-    N )
-      printMessage "Continue..."
-      continue
-    ;;
-  esac
+      break
+      ;;
+    no)
+      break
+      ;;
+    *) 
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
 }
 
 selectRootPartition() {
-  printMessage "Choose the root partition from the list"
+  printMessage "Root partition"
+  PS3="Select root partition: "
   list=$(lsblk -p -n -l -o NAME -e 7 $installationDisk)
   select rootPart in ${list}
   do
     if [[ "$REPLY" == 'q' ]]; then exit; fi
 
-    if [[ "$rootPart" == "" ]]
+    if [[ "$disk" == "" ]]
     then
-      echo "'$REPLY' is not a valid number"
+      echo "Invalid option $REPLY"
       continue
     fi
 
@@ -82,15 +90,16 @@ selectRootPartition() {
 }
 
 selectBootPartition() {
-  printMessage "Choose the boot partition from the list"
+  printMessage "Boot partition"
+  PS3="Select boot partition: "
   list=$(lsblk -p -n -l -o NAME -e 7 $installationDisk)
   select bootPart in ${list}
   do
     if [[ "$REPLY" == 'q' ]]; then exit; fi
 
-    if [[ "$bootPart" == "" ]]
+    if [[ "$disk" == "" ]]
     then
-      echo "'$REPLY' is not a valid number"
+      echo "Invalid option $REPLY"
       continue
     fi
 
@@ -100,28 +109,78 @@ selectBootPartition() {
 }
 
 chooseHostname() {
-  read -p "Type a hostname: " choiceHostname
-  hostName=$choiceHostname
+  printMessage "Hostname"
+  while true
+  do
+    read -p "Type a hostname: " choiceHostname
+    if [[ "$choiceHostname" == "" ]]
+      then
+        echo "Invalid hostname, please retry!"
+        continue
+      fi
+    hostName=$choiceHostname
+    break
+  done
 }
 
 chooseSwapfileSize() {
-  read -p "Type a size in Go for the swapfile: " choiceSwapfileSize
-  swapfileSize=$(expr $choiceSwapfileSize \* 1024)
+  printMessage "Swap file size"
+  while :
+  do
+    read -p "Type a size in Go for the swapfile: " choiceSwapfileSize
+    if [[ "$choiceSwapfileSize" == "" ]]
+      then
+        echo "Invalid size, please retry!"
+        continue
+      fi
+    swapfileSize=$(expr $choiceSwapfileSize \* 1024)
+    break
+  done
 }
 
 chooseUsername() {
-  read -p "Type a username: " choiceUsername
-  userName=$choiceUsername
+  printMessage "Username"
+  while :
+  do
+    read -p "Type a username: " choiceUsername
+    if [[ "$choiceUsername" == "" ]]
+      then
+        echo "Invalid username, please retry!"
+        continue
+      fi
+    userName=$choiceUsername
+    break
+  done
 }
 
 chooseUserPassword() {
-  read -s -p "Type the user password: " choiceUserPassword; echo
-  userPassword=$choiceUserPassword
+  printMessage "User password"
+  while :
+  do
+    read -s -p "Type the user password: " choiceUserPassword; echo
+    if [[ "$choiceUserPassword" == "" ]]
+      then
+        echo "Invalid user password, please retry!"
+        continue
+      fi
+    userPassword=$choiceUserPassword
+    break
+  done
 }
 
 chooseRootPassword() {
-  read -s -p "Type the root password: " choiceRootPassword; echo
-  rootPassword=$choiceRootPassword
+  printMessage "Root password"
+  while :
+  do
+    read -s -p "Type the root password: " choiceRootPassword; echo
+    if [[ "$choiceRootPassword" == "" ]]
+      then
+        echo "Invalid root password, please retry!"
+        continue
+      fi
+    rootPassword=$choiceRootPassword
+    break
+  done
 }
 
 formatPartitions() {
