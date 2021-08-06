@@ -297,10 +297,21 @@ endInstallation() {
   pacstrap /mnt base-devel linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils dnsutils nss-mdns reflector avahi
   
   printMessage "Starting services"
-  arch-chroot /mnt systemctl enable sshd avahi-daemon reflector.timer fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
+  arch-chroot /mnt systemctl enable sshd avahi-daemon reflector fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
+
+  printMessage "Adding reflection configuration"
+  reflectorConfig="
+    --country France
+    --protocol https
+    --latest 10
+    --sort rate
+    --save /etc/pacman.d/mirrorlist
+  "
+  echo "${reflectorConfig}" > /mnt/etc/xdg/reflector/reflector.conf
+  printMessage "${reflectorConfig}"
 
   printMessage "Generating mirrorlist"
-  reflector --country France --protocol https --age 6 --sort rate --verbose --save /mnt/etc/pacman.d/mirrorlist
+  arch-chroot /mnt systemctl start reflector.service
 
   printMessage "Adding the user"
   arch-chroot /mnt useradd -m $userName
