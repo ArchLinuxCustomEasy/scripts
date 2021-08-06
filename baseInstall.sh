@@ -314,19 +314,6 @@ endInstallation() {
   printMessage "Adding the user in sudoers"
   echo "%wheel ALL=(ALL) ALL" >> /mnt/etc/sudoers.d/wheel
 
-  printMessage "Adding keyboard configuration in xorg"
-  echo 'Section "InputClass"
-    Identifier "system-keyboard"
-    MatchIsKeyboard "on"
-    Option "XkbLayout" "fr"
-    Option "XkbModel" "pc105"
-    Option "XkbVariant" "mac"
-  EndSection' > /mnt/etc/X11/xorg.conf.d/00-keyboard.conf
-
-  printMessage "Adding Apple keyboard module"
-  echo "options hid_apple iso_layout = 0
-  options hid_apple fnmode = 1" > /mnt/etc/modprobe.d/hid_apple.conf
-
   printMessage "Congratulation! The base system is installed, you can now reboot!"
 }
 
