@@ -294,7 +294,7 @@ bootLoaderInChroot() {
 
 endInstallation() {
   printMessage "Adding common utilities"
-  pacstrap /mnt base-devel linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils dnsutils nss-mdns reflector avahi xorg xorg-{xinit,twm,apps}
+  pacstrap /mnt base-devel linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils dnsutils nss-mdns reflector avahi
   
   printMessage "Starting services"
   arch-chroot /mnt systemctl enable sshd avahi-daemon reflector.timer fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
