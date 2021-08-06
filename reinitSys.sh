@@ -29,10 +29,13 @@ reinitSys() {
   pacman -D --asdeps $(pacman -Qqe)
 
   printMessage "Mark base packages as explicit"
-  pacman -D --asexplicit base base-devel linux linux-firmware vim nano intel-ucode bash-completion git openssh rsync linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils bind nss-mdns reflector avahi sudo xf86-video-vesa
+  pacman -D --asexplicit base linux linux-firmware vim nano intel-ucode
 
   printMessage "Remove all non explicit packages"
-  pacman -Qttdq | pacman -Rns -
+  pacman -Qttdq | pacman -Rcns -
+
+  printMessage "Reinstalling basic packages"
+  pacman -Sy --asexplicit --noconfirm base-devel bash-completion git openssh rsync linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils bind nss-mdns reflector avahi sudo xf86-video-vesa
 
   printMessage "Enable base services"
   systemctl enable sshd avahi-daemon reflector.timer fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
