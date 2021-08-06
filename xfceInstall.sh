@@ -237,6 +237,35 @@ askInstallDesktopManager() {
   done
 }
 
+askAddAppleKeyboardConfig() {
+  PS3="Would you add Apple keyboard configuration for Xorg: "
+  select opt in yes no ; do
+  case $opt in
+    yes)
+      printMessage "Adding apple keyboard configuration in xorg"
+      echo 'Section "InputClass"
+        Identifier "system-keyboard"
+        MatchIsKeyboard "on"
+        Option "XkbLayout" "fr"
+        Option "XkbModel" "pc105"
+        Option "XkbVariant" "mac"
+      EndSection' > /etc/X11/xorg.conf.d/00-keyboard.conf
+
+      printMessage "Adding Apple keyboard module"
+      echo "options hid_apple iso_layout = 0
+      options hid_apple fnmode = 1" > /etc/modprobe.d/hid_apple.conf
+      break
+      ;;
+    no)
+      break
+      ;;
+    *) 
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
+}
+
 main() {
   handleError
   askUpdateMirrorList
@@ -248,6 +277,7 @@ main() {
   askInstallBaseFonts
   askInstallDesktopUtils
   askInstallDesktopManager
+  askAddAppleKeyboardConfig
 }
 
 time main
