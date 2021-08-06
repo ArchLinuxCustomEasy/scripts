@@ -55,6 +55,23 @@ makeDiskPartitions() {
   select opt in yes no ; do
   case $opt in
     yes )
+      printMessage "Reinitialize the installation disk; CAUTION: this will delete all data on ${installationDisk} disk, please do this ONLY if you are SURE!"
+      PS3="Reinitialize installation disk? "
+      select opt in yes no ; do
+      case $opt in
+        yes )
+          wipefs -a ${installationDisk}
+          break
+          ;;
+        no)
+          break
+          ;;
+        *) 
+          echo "Invalid option $REPLY"
+          ;;
+        esac
+      done
+
       printMessage "Make partitions on ${installationDisk}"
       gdisk ${installationDisk}
       break
