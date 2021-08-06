@@ -327,9 +327,6 @@ endInstallation() {
   echo "${reflectorConfig}" > /mnt/etc/xdg/reflector/reflector.conf
   printMessage "${reflectorConfig}"
 
-  printMessage "Generating mirrorlist"
-  arch-chroot /mnt systemctl start reflector.service
-
   printMessage "Adding the user"
   arch-chroot /mnt useradd -m $userName
 
