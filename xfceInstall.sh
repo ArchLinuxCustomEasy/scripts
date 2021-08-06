@@ -33,7 +33,7 @@ askUpdateMirrorList() {
     yes)
       # Reflector See: https://wiki.archlinux.org/title/Reflector
       printMessage "Updating mirror list"
-      reflector --country France --protocol https --age 6 --sort rate --verbose --save /etc/pacman.d/mirrorlist
+      systemctl start reflector
       break
       ;;
     no)
