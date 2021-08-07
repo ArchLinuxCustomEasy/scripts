@@ -276,6 +276,29 @@ askAddAppleKeyboardConfig() {
   done
 }
 
+askAddCustomXfceTheme() {
+  printMessage "Custom Xfce dark theme"
+  
+  PS3="Would you add custom Xfce dark theme: "
+  select opt in yes no ; do
+  case $opt in
+    yes)
+      printMessage "Adding custom Xfce dark theme"
+      su - $(logname) -c "git clone https://github.com/TituxMetal/xfce-dotfiles.git /tmp/dotfiles"
+      su - $(logname) -c "rsync -rltv --stats --progress --exclude=.git /tmp/dotfiles/ ~/"
+      su - $(logname) -c "rm -rf /tmp/dotfiles"
+      break
+      ;;
+    no)
+      break
+      ;;
+    *) 
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
+}
+
 main() {
   handleError
   isRootUser
@@ -289,6 +312,7 @@ main() {
   askInstallDesktopUtils
   askInstallDesktopManager
   askAddAppleKeyboardConfig
+  askAddCustomXfceTheme
 }
 
 time main
