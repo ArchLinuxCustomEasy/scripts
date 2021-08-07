@@ -202,9 +202,10 @@ chooseRootPassword() {
 
 formatPartitions() {
   printMessage "Formatting boot partition"
-  mkfs.fat -n ESP -F32 $bootPartition
+  echo "Y" | mkfs.fat -n ESP -F32 $bootPartition
+  sleep 1
   printMessage "Formatting root partition"
-  mkfs.ext4 -L root $rootPartition
+  echo "Y" | mkfs.ext4 -L root $rootPartition
 }
 
 mountPartitions() {
