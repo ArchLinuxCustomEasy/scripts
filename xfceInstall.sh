@@ -232,7 +232,7 @@ askInstallDesktopManager() {
   case $opt in
     yes)
       printMessage "Installing xfce desktop + theme"
-      pacman -S --noconfirm xorg xorg-{xinit,twm,apps} xdg-{utils,user-dirs} xbindkeys pavucontrol xfce4 xfce4-goodies numlockx firefox firefox-{i18n-fr,ublock-origin} arc-gtk-theme arc-icon-theme papirus-icon-theme materia-gtk-theme kvantum-theme-materia terminus-font vim xed
+      pacman -S --noconfirm xorg xorg-{xinit,twm,apps} xdg-{utils,user-dirs} xbindkeys pavucontrol xfce4 xfce4-goodies numlockx firefox firefox-{i18n-fr,ublock-origin} arc-gtk-theme arc-icon-theme papirus-icon-theme materia-gtk-theme gtk-engine-murrine kvantum-theme-materia terminus-font vim xed
       break
       ;;
     no)
