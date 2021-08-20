@@ -61,6 +61,7 @@ makeDiskPartitions() {
       case $opt in
         yes )
           wipefs -a ${installationDisk}
+          wipe -r ${installationDisk}
           break
           ;;
         no)
