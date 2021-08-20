@@ -339,7 +339,9 @@ endInstallation() {
   arch-chroot /mnt usermod -aG wheel,audio,optical,storage,video $userName
 
   printMessage "Adding the user in sudoers"
-  echo "%wheel ALL=(ALL) ALL" >> /mnt/etc/sudoers.d/wheel
+  echo "%wheel ALL=(ALL) ALL
+Defaults timestamp_type=global
+Defaults timestamp_timeout=30" > /mnt/etc/sudoers.d/wheel
 
   printMessage "Congratulation! The base system is installed, you can now reboot!"
 }
