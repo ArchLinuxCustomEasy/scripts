@@ -242,17 +242,21 @@ baseConfigurationInChroot() {
   
   printMessage "Locale configuration in chroot"
   sed -i '/#fr_FR.UTF-8/s/^#//g' /mnt/etc/locale.gen
-  echo "LANG=fr_FR.UTF-8
-  LC_COLLATE=C" > /mnt/etc/locale.conf
+  cat > "/mnt/etc/locale.conf" << EOF
+LANG=fr_FR.UTF-8
+LC_COLLATE=C
+EOF
 
   printMessage "Console keyboard configuration in chroot"
   echo "KEYMAP=fr" > /mnt/etc/vconsole.conf
 
   printMessage "Hostname configuration in chroot"
   echo "$hostName" > /mnt/etc/hostname
-  echo "127.0.0.1     localhost
-  ::1     localhost
-  127.0.1.1       $hostName.local $hostName" > /mnt/etc/hosts
+  cat > "/mnt/etc/hosts" << EOF
+127.0.0.1   localhost
+::1         localhost
+127.0.1.1   $hostName.local $hostName
+EOF
 }
 
 systemConfigurationInChroot() {
@@ -272,8 +276,10 @@ systemConfigurationInChroot() {
   genfstab -U /mnt >> /mnt/etc/fstab
 
   printMessage "Optimizing swap usage"
-  echo "vm.swappiness=10
-  vm.vfs_cache_pressure=50" > /mnt/etc/sysctl.d/99-swappiness.conf
+  cat > "/mnt/etc/sysctl.d/99-swappiness.conf" << EOF
+vm.swappiness=10
+vm.vfs_cache_pressure=50
+EOF
 }
 
 bootLoaderInChroot() {
@@ -282,30 +288,38 @@ bootLoaderInChroot() {
 
   printMessage "Systemd-boot pacman hook"
   mkdir -p /mnt/etc/pacman.d/hooks
-  echo "[Trigger]
-  Type = Package
-  Operation = Upgrade
-  Target = systemd
-  [Action]
-  Description = Updating systemd-boot
-  When = PostTransaction
-  Exec = /usr/bin/bootctl update" > /mnt/etc/pacman.d/hooks/100-systemd-boot.hook
+  cat > "/mnt/etc/pacman.d/hooks/100-systemd-boot.hook" << EOF
+[Trigger]
+Type = Package
+Operation = Upgrade
+Target = systemd
+[Action]
+Description = Updating systemd-boot
+When = PostTransaction
+Exec = /usr/bin/bootctl update
+EOF
 
   printMessage "Systemd-boot entries configuration"
-  echo "title     Arch Linux
-  linux       /vmlinuz-linux
-  initrd      /intel-ucode.img
-  initrd      /initramfs-linux.img
-  options     root=PARTUUID=${rootPartUuid} rw" > /mnt/boot/loader/entries/archlinux.conf
-  echo "title     Arch Linux (fallback initramfs)
-  linux       /vmlinuz-linux
-  initrd      /intel-ucode.img
-  initrd      /initramfs-linux-fallback.img
-  options     root=PARTUUID=${rootPartUuid} rw" > /mnt/boot/loader/entries/archlinux-fallback.conf
+  cat > "/mnt/boot/loader/entries/archlinux.conf" << EOF
+title   Arch Linux
+linux   /vmlinuz-linux
+initrd  /intel-ucode.img
+initrd  /initramfs-linux.img
+options root=PARTUUID=${rootPartUuid} rw
+EOF
+  cat > "/mnt/boot/loader/entries/archlinux-fallback.conf" << EOF
+title   Arch Linux (fallback initramfs)
+linux   /vmlinuz-linux
+initrd  /intel-ucode.img
+initrd  /initramfs-linux-fallback.img
+options root=PARTUUID=${rootPartUuid} rw
+EOF
 
   printMessage "Systemd-boot loader configuration"
-  echo "default  arch*.conf
-  timeout  1" > /mnt/boot/loader/loader.conf
+  cat > "/mnt/boot/loader/loader.conf" << EOF
+default  arch*.conf
+timeout  1
+EOF
 
   printMessage "Systemd-boot update"
   arch-chroot /mnt bootctl update
@@ -319,15 +333,13 @@ endInstallation() {
   arch-chroot /mnt systemctl enable sshd avahi-daemon reflector fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
 
   printMessage "Adding reflection configuration"
-  reflectorConfig="
-    --country France
-    --protocol https
-    --latest 10
-    --sort rate
-    --save /etc/pacman.d/mirrorlist
-  "
-  echo "${reflectorConfig}" > /mnt/etc/xdg/reflector/reflector.conf
-  printMessage "${reflectorConfig}"
+  cat > "/mnt/etc/xdg/reflector/reflector.conf" << EOF
+--country France
+--protocol https
+--latest 10
+--sort rate
+--save /etc/pacman.d/mirrorlist
+EOF
 
   printMessage "Adding the user"
   arch-chroot /mnt useradd -m $userName
@@ -339,9 +351,11 @@ endInstallation() {
   arch-chroot /mnt usermod -aG wheel,audio,optical,storage,video $userName
 
   printMessage "Adding the user in sudoers"
-  echo "%wheel ALL=(ALL) ALL
+  cat > "/mnt/etc/sudoers.d/wheel" << EOF
+%wheel ALL=(ALL) ALL
 Defaults timestamp_type=global
-Defaults timestamp_timeout=30" > /mnt/etc/sudoers.d/wheel
+Defaults timestamp_timeout=30
+EOF
 
   printMessage "Congratulation! The base system is installed, you can now reboot!"
 }
