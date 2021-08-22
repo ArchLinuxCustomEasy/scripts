@@ -253,17 +253,21 @@ askAddAppleKeyboardConfig() {
   case $opt in
     yes)
       printMessage "Adding apple keyboard configuration in xorg"
-      echo 'Section "InputClass"
-        Identifier "system-keyboard"
-        MatchIsKeyboard "on"
-        Option "XkbLayout" "fr"
-        Option "XkbModel" "pc105"
-        Option "XkbVariant" "mac"
-      EndSection' > /etc/X11/xorg.conf.d/00-keyboard.conf
+      cat > "/etc/X11/xorg.conf.d/00-keyboard.conf" << EOF
+Section "InputClass"
+  Identifier "system-keyboard"
+  MatchIsKeyboard "on"
+  Option "XkbLayout" "fr"
+  Option "XkbModel" "pc105"
+  Option "XkbVariant" "mac"
+EndSection
+EOF
 
       printMessage "Adding Apple keyboard module"
-      echo "options hid_apple iso_layout = 0
-      options hid_apple fnmode = 1" > /etc/modprobe.d/hid_apple.conf
+      cat > "/etc/modprobe.d/hid_apple.conf" << EOF
+options hid_apple iso_layout = 0
+options hid_apple fnmode = 1
+EOF
       break
       ;;
     no)
