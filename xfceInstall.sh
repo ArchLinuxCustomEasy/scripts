@@ -33,7 +33,7 @@ askUpdateMirrorList() {
     yes)
       # Reflector See: https://wiki.archlinux.org/title/Reflector
       printMessage "Updating mirror list"
-      systemctl start reflector
+      reflector --verbose @/etc/xdg/reflector/reflector.conf
       break
       ;;
     no)
