@@ -336,7 +336,7 @@ endInstallation() {
   cat > "/mnt/etc/xdg/reflector/reflector.conf" << EOF
 --country France
 --protocol https
---latest 10
+--latest 5
 --sort rate
 --save /etc/pacman.d/mirrorlist
 EOF
