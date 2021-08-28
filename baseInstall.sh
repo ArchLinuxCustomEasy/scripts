@@ -61,7 +61,8 @@ makeDiskPartitions() {
       case $opt in
         yes )
           wipefs -a ${installationDisk}
-          wipe -r ${installationDisk}
+          echo Y | parted ${installationDisk} mklabel gpt
+          partprobe --summary ${installationDisk}
           break
           ;;
         no)
@@ -74,7 +75,9 @@ makeDiskPartitions() {
       done
 
       printMessage "Make partitions on ${installationDisk}"
-      gdisk ${installationDisk}
+      parted ${installationDisk} mkpart "EFI" fat32 1MiB 300MiB set 1 esp on
+      parted ${installationDisk} mkpart "root" ext4 300MiB 100%
+      parted ${installationDisk} print align-check optimal 2
       break
       ;;
     no)
