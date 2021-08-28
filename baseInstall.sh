@@ -340,7 +340,7 @@ EOF
   pacstrap /mnt base-devel linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils dnsutils nss-mdns reflector avahi
   
   printMessage "Starting services"
-  arch-chroot /mnt systemctl enable sshd avahi-daemon reflector numlockon fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
+  arch-chroot /mnt systemctl enable sshd avahi-daemon numlockon fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
 
   printMessage "Adding reflection configuration"
   cat > "/mnt/etc/xdg/reflector/reflector.conf" << EOF
