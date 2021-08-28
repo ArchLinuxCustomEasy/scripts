@@ -326,11 +326,21 @@ EOF
 }
 
 endInstallation() {
+  printMessage "Adding Numlock On service"
+  cat > /mnt/etc/systemd/system/numlockon.service << "EOF"
+[Unit]
+Description=Switch on numlock from tty1 to tty6
+[Service]
+ExecStart=/bin/bash -c 'for tty in /dev/tty{1..6};do /usr/bin/setleds -D +num < \"$tty\";done'
+[Install]
+WantedBy=multi-user.target
+EOF
+
   printMessage "Adding common utilities"
   pacstrap /mnt base-devel linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils dnsutils nss-mdns reflector avahi
   
   printMessage "Starting services"
-  arch-chroot /mnt systemctl enable sshd avahi-daemon reflector fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
+  arch-chroot /mnt systemctl enable sshd avahi-daemon reflector numlockon fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
 
   printMessage "Adding reflection configuration"
   cat > "/mnt/etc/xdg/reflector/reflector.conf" << EOF
