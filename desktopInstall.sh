@@ -236,7 +236,8 @@ installAurPackages() {
     installAurPackageManager
 
     printMessage "Installing aur packages: ${aurPackages}"
-    su - $(logname) -c "yay -Sy --nodiffmenu --removemake --clean ${aurPackages}"
+    su - $(logname) -c "yay -Sy --nodiffmenu --removemake --noconfirm ${aurPackages}"
+    systemctl enable ly
   fi
 }
 
