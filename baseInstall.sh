@@ -370,6 +370,31 @@ Defaults timestamp_type=global
 Defaults timestamp_timeout=30
 EOF
 
+  printMessage "Copy the desktop install script in new system"
+
+  PS3="Would you add desktopInstall.sh script to the new system"
+  select opt in yes no ; do
+  case $opt in
+    yes)
+      cp ./desktopInstall.sh /mnt/home/${userName}/
+      chown ${userName}:${userName} /mnt/home/${userName}/desktopInstall.sh
+      chmod +x /mnt/home/${userName}/desktopInstall.sh      
+      break
+      ;;
+    no)
+      break
+      ;;
+    *) 
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
+
+  printMessage "Unmouting the new system"
+  swapoff /mnt/swapfile
+  umount /mnt/boot
+  umount /mnt
+
   printMessage "Congratulation! The base system is installed, you can now reboot!"
 }
 
