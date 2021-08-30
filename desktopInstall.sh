@@ -225,14 +225,14 @@ askAddAurPackages() {
 installAurPackageManager() {
   if ! (yay --version &> /dev/null); then
     printMessage "Installing yay package manager"
-    su - $(logname) -c "git clone https://aur.archlinux.org/yay.git /tmp/yay && cd /tmp/yay"
-    su - $(logname) -c "makepkg -sri --noconfirm"
+    su - $(logname) -c "git clone https://aur.archlinux.org/yay.git /tmp/yay"
+    su - $(logname) -c "cd /tmp/yay && makepkg -sri --noconfirm"
     rm -rf /tmp/yay
   fi
 }
 
 installAurPackages() {
-  if [[ -z "${aurPackages}" ]]; then
+  if ! [ -z "${aurPackages}" ]; then
     installAurPackageManager
 
     printMessage "Installing aur packages: ${aurPackages}"
