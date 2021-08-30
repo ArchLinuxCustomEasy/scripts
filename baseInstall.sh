@@ -377,7 +377,6 @@ EOF
   case $opt in
     yes)
       cp ./desktopInstall.sh /mnt/home/${userName}/
-      chown ${userName}:${userName} /mnt/home/${userName}/desktopInstall.sh
       chmod +x /mnt/home/${userName}/desktopInstall.sh      
       break
       ;;
