@@ -11,6 +11,8 @@ audioVideoImagePackages=""
 
 desktopEnvPackages=""
 
+customDarkThemeRepo=""
+
 appleKeyboardConfig=""
 
 aurPackages=""
@@ -30,7 +32,7 @@ commonFontPackages="terminus-font noto-fonts ttf-bitstream-vera ttf-dejavu ttf-d
 webBrowserPackages="firefox firefox-i18n-fr firefox-ublock-origin firefox-dark-reader firefox-extension-passff firefox-extension-privacybadger torbrowser-launcher"
 
 # System Utilities
-commonSystemUtilsPackages="gvfs gvfs-gphoto2 gvfs-afc gvfs-goa gvfs-google gvfs-mtp gvfs-nfs gvfs-smb vim rsync htop neofetch xed alacritty"
+commonSystemUtilsPackages="gvfs gvfs-gphoto2 gvfs-afc gvfs-goa gvfs-google gvfs-mtp gvfs-nfs gvfs-smb vim rsync htop neofetch xed alacritty chezmoi"
 
 # Archive utilities
 archiveUtilsPackages="xarchiver zip unzip unrar p7zip"
@@ -222,6 +224,26 @@ askAddAurPackages() {
   done
 }
 
+askAddCustomDarkTheme() {
+  printMessage "Custom dark theme"
+  
+  PS3="Would you add custom dark theme: "
+  select opt in yes no ; do
+  case $opt in
+    yes)
+      customDarkThemeRepo="https://github.com/TituxMetal/xfce-dotfiles.git"
+      break
+      ;;
+    no)
+      break
+      ;;
+    *) 
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
+}
+
 installAurPackageManager() {
   if ! (yay --version &> /dev/null); then
     printMessage "Installing yay package manager"
@@ -288,28 +310,14 @@ EOF
   fi
 }
 
-# askAddCustomXfceTheme() {
-#   printMessage "Custom Xfce dark theme"
-  
-#   PS3="Would you add custom Xfce dark theme: "
-#   select opt in yes no ; do
-#   case $opt in
-#     yes)
-#       printMessage "Adding custom Xfce dark theme"
-#       su - $(logname) -c "git clone https://github.com/TituxMetal/xfce-dotfiles.git /tmp/dotfiles"
-#       su - $(logname) -c "rsync -rltv --stats --progress --exclude=.git /tmp/dotfiles/ ~/"
-#       su - $(logname) -c "rm -rf /tmp/dotfiles"
-#       break
-#       ;;
-#     no)
-#       break
-#       ;;
-#     *) 
-#       echo "Invalid option $REPLY"
-#       ;;
-#     esac
-#   done
-# }
+addCustomDarkTheme() {
+  if ! [ -z "$customDarkThemeRepo" ]; then
+    printMessage "Adding custom dark theme"
+    git clone ${customDarkThemeRepo} /tmp/customDarkTheme
+    rsync -rltv --stats --progress --exclude=.git /tmp/dotfiles/.config/ /etc/xdg/
+    rm -rf /tmp/customDarkTheme
+  fi  
+}
 
 prepare() {
   askUpdateMirrorList
@@ -318,6 +326,7 @@ prepare() {
   askDesktopEnvironmentInstall
   askAddAppleKeyboardConfig
   askAddAurPackages
+  askAddCustomDarkTheme
 }
 
 main() {
@@ -328,6 +337,7 @@ main() {
   installBluetoothSupport
   addAppleKeyboardConfig
   installAurPackages
+  addCustomDarkTheme
 }
 
 time main
