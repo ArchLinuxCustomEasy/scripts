@@ -247,7 +247,7 @@ askAddCustomDarkTheme() {
 installAurPackageManager() {
   if ! (yay --version &> /dev/null); then
     printMessage "Installing yay package manager"
-    su - $(logname) -c "git clone https://aur.archlinux.org/yay.git /tmp/yay"
+    su - $(logname) -c "git clone https://aur.archlinux.org/yay-bin.git /tmp/yay"
     su - $(logname) -c "cd /tmp/yay && makepkg -sri --noconfirm"
     rm -rf /tmp/yay
   fi
