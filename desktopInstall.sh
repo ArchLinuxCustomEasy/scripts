@@ -158,7 +158,7 @@ askDesktopEnvironmentInstall() {
   select opt in xfce i3wm openbox dwm ; do
   case $opt in
     xfce)
-      desktopEnvPackages="xfce4 xfce4-goodies"
+      desktopEnvPackages="xfce4 xfce4-goodies archlinux-wallpaper"
       printMessage "Xfce packages: ${desktopEnvPackages}"
       break
       ;;
