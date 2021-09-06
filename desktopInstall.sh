@@ -314,7 +314,7 @@ addCustomDarkTheme() {
   if ! [ -z "$customDarkThemeRepo" ]; then
     printMessage "Adding custom dark theme"
     git clone ${customDarkThemeRepo} /tmp/customDarkTheme
-    rsync -rltv --stats --progress --exclude=.git /tmp/dotfiles/.config/ /etc/xdg/
+    rsync -rltv --stats --progress --exclude=.git /tmp/customDarkTheme/ /etc/xdg/xfce4/
     rm -rf /tmp/customDarkTheme
   fi  
 }
