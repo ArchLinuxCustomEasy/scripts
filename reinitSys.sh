@@ -42,13 +42,13 @@ reinitSys() {
 }
 
 postInstall() {
-  printMessage "System reinitialization is done! You can install manually your packages or launch the xfceInstall.sh script."
+  printMessage "System reinitialization is done! You can install manually your packages or launch the desktopInstall.sh script."
 
-  PS3="Launch xfceInstall.sh script? "
+  PS3="Launch desktopInstall.sh script? "
   select opt in yes no ; do
   case $opt in
     yes )
-      sh xfceInstall.sh
+      sh desktopInstall.sh
       break
       ;;
     no)
