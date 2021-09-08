@@ -9,6 +9,8 @@ videoDriverPackages=""
 
 audioVideoImagePackages=""
 
+desktopEnvironment=""
+
 desktopEnvPackages=""
 
 customDarkThemeRepo=""
@@ -158,6 +160,7 @@ askDesktopEnvironmentInstall() {
   select opt in xfce i3wm openbox dwm ; do
   case $opt in
     xfce)
+      desktopEnvironment="xfce"
       desktopEnvPackages="xfce4 xfce4-goodies archlinux-wallpaper"
       printMessage "Xfce packages: ${desktopEnvPackages}"
       break
@@ -168,8 +171,9 @@ askDesktopEnvironmentInstall() {
       break
       ;;
     openbox)
-      desktopEnvPackages="openbox"
-      printMessage "Openbox packages (not implemented): ${desktopEnvPackages}"
+      desktopEnvironment="openbox"
+      desktopEnvPackages="openbox obconf lxappearance-obconf lxinput lxrandr archlinux-xdg-menu archlinux-wallpaper"
+      printMessage "Openbox packages (WIP): ${desktopEnvPackages}"
       break
       ;;
     dwm)
@@ -225,23 +229,25 @@ askAddAurPackages() {
 }
 
 askAddCustomDarkTheme() {
-  printMessage "Custom dark theme"
-  
-  PS3="Would you add custom dark theme: "
-  select opt in yes no ; do
-  case $opt in
-    yes)
-      customDarkThemeRepo="https://github.com/TituxMetal/xfce-dotfiles.git"
-      break
-      ;;
-    no)
-      break
-      ;;
-    *) 
-      echo "Invalid option $REPLY"
-      ;;
-    esac
-  done
+  if [[ "${desktopEnvironment}" == "xfce" ]] ;then
+    printMessage "Custom dark theme"
+    
+    PS3="Would you add custom dark theme: "
+    select opt in yes no ; do
+    case $opt in
+      yes)
+        customDarkThemeRepo="https://github.com/TituxMetal/xfce-dotfiles.git"
+        break
+        ;;
+      no)
+        break
+        ;;
+      *) 
+        echo "Invalid option $REPLY"
+        ;;
+      esac
+    done
+  fi
 }
 
 installAurPackageManager() {
