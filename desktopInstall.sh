@@ -46,7 +46,7 @@ fileSystemUtilsPackages="gptfdisk mtools xfsprogs dosfstools gparted f2fs-tools 
 xorgPackages="xorg xorg-xinit xorg-server xdg-utils xdg-user-dirs xbindkeys xcompmgr numlockx tumbler"
 
 # Icon and dark themes
-darkThemesPackages="arc-gtk-theme arc-icon-theme papirus-icon-theme materia-gtk-theme gtk-engine-murrine kvantum-theme-materia"
+darkThemesPackages="arc-gtk-theme arc-icon-theme papirus-icon-theme materia-gtk-theme gtk-engine-murrine kvantum-theme-materia archlinux-wallpaper"
 
 printMessage() {
   message=$1
@@ -157,11 +157,11 @@ askDesktopEnvironmentInstall() {
   printMessage "Choose desktop environment to install"
 
   PS3="Select which desktop environment to install: "
-  select opt in xfce i3wm openbox dwm ; do
+  select opt in xfce i3wm mate dwm ; do
   case $opt in
     xfce)
       desktopEnvironment="xfce"
-      desktopEnvPackages="xfce4 xfce4-goodies archlinux-wallpaper"
+      desktopEnvPackages="xfce4 xfce4-goodies"
       printMessage "Xfce packages: ${desktopEnvPackages}"
       break
       ;;
@@ -170,10 +170,10 @@ askDesktopEnvironmentInstall() {
       printMessage "I3 window manager packages (not implemented): ${desktopEnvPackages}"
       break
       ;;
-    openbox)
-      desktopEnvironment="openbox"
-      desktopEnvPackages="openbox obconf lxappearance-obconf lxinput lxrandr archlinux-xdg-menu archlinux-wallpaper"
-      printMessage "Openbox packages (WIP): ${desktopEnvPackages}"
+    mate)
+      desktopEnvironment="mate"
+      desktopEnvPackages="mate mate-extra"
+      printMessage "Mate packages (WIP): ${desktopEnvPackages}"
       break
       ;;
     dwm)
