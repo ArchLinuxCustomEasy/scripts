@@ -65,7 +65,7 @@ handleError() {
 }
 
 isRootUser() {
-  if [[ ! "$EUID" = 0 ]]; then 
+  if [[ ! "$EUID" = 0 ]]; then
     printMessage "Please Run As Root"
     exit 0
   fi
@@ -74,7 +74,7 @@ isRootUser() {
 
 askUpdateMirrorList() {
   printMessage "Refresh Pacman mirror list"
-  
+
   PS3="Would you refresh Pacman mirror list: "
   select opt in yes no ; do
   case $opt in
@@ -87,7 +87,7 @@ askUpdateMirrorList() {
     no)
       break
       ;;
-    *) 
+    *)
       echo "Invalid option $REPLY"
       ;;
     esac
@@ -125,7 +125,7 @@ askInstallVideoDrivers() {
       printMessage "Default generic video drivers: ${videoDriverPackages}"
       break
       ;;
-    *) 
+    *)
       echo "Invalid option $REPLY"
       ;;
     esac
@@ -134,7 +134,7 @@ askInstallVideoDrivers() {
 
 askInstallAudioVideoImageUtils() {
   printMessage "Audio/Video/Image utilities"
-  
+
   PS3="Would you install Audio/Video/Image utilities: "
   select opt in yes no ; do
   case $opt in
@@ -146,7 +146,7 @@ askInstallAudioVideoImageUtils() {
     no)
       break
       ;;
-    *) 
+    *)
       echo "Invalid option $REPLY"
       ;;
     esac
@@ -181,7 +181,7 @@ askDesktopEnvironmentInstall() {
       printMessage "Dwm packages (not implemented): ${desktopEnvPackages}"
       break
       ;;
-    *) 
+    *)
       echo "Invalid option $REPLY"
       ;;
     esac
@@ -201,7 +201,7 @@ askAddAppleKeyboardConfig() {
     no)
       break
       ;;
-    *) 
+    *)
       echo "Invalid option $REPLY"
       ;;
     esac
@@ -221,7 +221,7 @@ askAddAurPackages() {
     no)
       break
       ;;
-    *) 
+    *)
       echo "Invalid option $REPLY"
       ;;
     esac
@@ -229,25 +229,23 @@ askAddAurPackages() {
 }
 
 askAddCustomDarkTheme() {
-  if [[ "${desktopEnvironment}" == "xfce" ]] ;then
-    printMessage "Custom dark theme"
-    
-    PS3="Would you add custom dark theme: "
-    select opt in yes no ; do
-    case $opt in
-      yes)
-        customDarkThemeRepo="https://github.com/TituxMetal/xfce-dotfiles.git"
-        break
-        ;;
-      no)
-        break
-        ;;
-      *) 
-        echo "Invalid option $REPLY"
-        ;;
-      esac
-    done
-  fi
+  printMessage "Custom dark theme"
+
+  PS3="Would you add custom dark theme: "
+  select opt in yes no ; do
+  case $opt in
+    yes)
+      customDarkThemeRepo="https://github.com/ArchLinuxCustomEasy/darkTheme.git"
+      break
+      ;;
+    no)
+      break
+      ;;
+    *)
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
 }
 
 installAurPackageManager() {
@@ -319,10 +317,22 @@ EOF
 addCustomDarkTheme() {
   if ! [ -z "$customDarkThemeRepo" ]; then
     printMessage "Adding custom dark theme"
-    git clone ${customDarkThemeRepo} /tmp/customDarkTheme
-    rsync -rltv --stats --progress --exclude=.git /tmp/customDarkTheme/ /etc/xdg/xfce4/
-    rm -rf /tmp/customDarkTheme
-  fi  
+    workDir="/tmp/customDarkTheme"
+    userConfigDir="/home/$(logname)/.config"
+    git clone ${customDarkThemeRepo} ${workDir}
+    params="-rltv --stats --progress"
+    if [[ "${desktopEnvironment}" == "mate" ]] ;then
+      params+=" --exclude=xfce4"
+    fi
+    su - $(logname) -c "rsync ${params} ${workDir}/dotConfig/* ${userConfigDir}/"
+    mkdir -p /etc/dconf/{profile,db/local.d}
+    echo -en "service-db:keyfile/user\nuser-db:user" > /etc/dconf/profile/user
+    cat ${workDir}/{${desktopEnvironment}Desktop.ini,xedEditor.ini} > ${workDir}/user.txt
+    dconf compile /etc/dconf/db/local /etc/dconf/db/local.d
+    su - $(logname) -c "mkdir -p ${userConfigDir}/dconf"
+    su - $(logname) -c "cp ${workDir}/user.txt ${userConfigDir}/dconf/"
+    rm -rf ${workDir}
+  fi
 }
 
 prepare() {
