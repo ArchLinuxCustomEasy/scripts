@@ -2,6 +2,7 @@
 
 diskList=$(lsblk -d -p -n -l -o NAME,SIZE -e 7,11)
 partitionList=$(lsblk -p -n -l -o NAME,SIZE -e 7,11)
+chrootPath="/mnt/alice"
 installationDisk=''
 bootPartition=''
 rootPartition=''
@@ -68,7 +69,7 @@ makeDiskPartitions() {
         no)
           break
           ;;
-        *) 
+        *)
           echo "Invalid option $REPLY"
           ;;
         esac
@@ -83,7 +84,7 @@ makeDiskPartitions() {
     no)
       break
       ;;
-    *) 
+    *)
       echo "Invalid option $REPLY"
       ;;
     esac
@@ -213,49 +214,51 @@ formatPartitions() {
 }
 
 mountPartitions() {
+  printMessage "Creating the chroot mount point ${chrootPath}"
+  mkdir -p ${chrootPath}
   printMessage "Mounting root partition"
-  mount $rootPartition /mnt
-  mkdir -p /mnt/boot
+  mount $rootPartition ${chrootPath}
+  mkdir -p ${chrootPath}/boot
   printMessage "Mounting boot partition"
-  mount $bootPartition /mnt/boot
+  mount $bootPartition ${chrootPath}/boot
 }
 
 makeSwapFile() {
   printMessage "Creating the swapfile"
-  dd if=/dev/zero of=/mnt/swapfile bs=1M count=$swapfileSize status=progress
+  dd if=/dev/zero of=${chrootPath}/swapfile bs=1M count=$swapfileSize status=progress
   printMessage "Changing permissions on swapfile"
-  chmod 600 /mnt/swapfile
+  chmod 600 ${chrootPath}/swapfile
   printMessage "Mounting/enable the swapfile"
-  mkswap /mnt/swapfile
-  swapon /mnt/swapfile
+  mkswap ${chrootPath}/swapfile
+  swapon ${chrootPath}/swapfile
 }
 
 installBaseSystemInChroot() {
   printMessage "Installing the base system in chroot"
-  pacstrap /mnt base linux linux-firmware vim nano intel-ucode bash-completion git openssh rsync
+  pacstrap ${chrootPath} base linux linux-firmware vim nano intel-ucode bash-completion git openssh rsync
 }
 
 baseConfigurationInChroot() {
   printMessage "Changing pacman configuration in chroot"
-  cp /etc/pacman.conf /mnt/etc/pacman.conf
-  sed -i "s/# Misc options/# Misc options\nColor\nParallelDownloads=6\nVerbosePkgLists\nILoveCandy/" /mnt/etc/pacman.conf
+  cp /etc/pacman.conf ${chrootPath}/etc/pacman.conf
+  sed -i "s/# Misc options/# Misc options\nColor\nParallelDownloads=6\nVerbosePkgLists\nILoveCandy/" ${chrootPath}/etc/pacman.conf
 
   printMessage "Timezone configuration in chroot"
-  ln -sf /usr/share/zoneinfo/Europe/Paris /mnt/etc/localtime
-  
+  ln -sf /usr/share/zoneinfo/Europe/Paris ${chrootPath}/etc/localtime
+
   printMessage "Locale configuration in chroot"
-  sed -i '/#fr_FR.UTF-8/s/^#//g' /mnt/etc/locale.gen
-  cat > "/mnt/etc/locale.conf" << EOF
+  sed -i '/#fr_FR.UTF-8/s/^#//g' ${chrootPath}/etc/locale.gen
+  cat > "${chrootPath}/etc/locale.conf" << EOF
 LANG=fr_FR.UTF-8
 LC_COLLATE=C
 EOF
 
   printMessage "Console keyboard configuration in chroot"
-  echo "KEYMAP=fr" > /mnt/etc/vconsole.conf
+  echo "KEYMAP=fr" > ${chrootPath}/etc/vconsole.conf
 
   printMessage "Hostname configuration in chroot"
-  echo "$hostName" > /mnt/etc/hostname
-  cat > "/mnt/etc/hosts" << EOF
+  echo "$hostName" > ${chrootPath}/etc/hostname
+  cat > "${chrootPath}/etc/hosts" << EOF
 127.0.0.1   localhost
 ::1         localhost
 127.0.1.1   $hostName.local $hostName
@@ -267,19 +270,19 @@ systemConfigurationInChroot() {
   timedatectl set-ntp true
 
   printMessage "Setting hardware clock from system clock"
-  arch-chroot /mnt hwclock --systohc
+  arch-chroot ${chrootPath} hwclock --systohc
 
   printMessage "Generating locales"
-  arch-chroot /mnt locale-gen
+  arch-chroot ${chrootPath} locale-gen
 
   printMessage "Changing root password"
-  echo root:$rootPassword | arch-chroot /mnt chpasswd
+  echo root:$rootPassword | arch-chroot ${chrootPath} chpasswd
 
   printMessage "Generating fstab"
-  genfstab -U /mnt >> /mnt/etc/fstab
+  genfstab -U ${chrootPath} >> ${chrootPath}/etc/fstab
 
   printMessage "Optimizing swap usage"
-  cat > "/mnt/etc/sysctl.d/99-swappiness.conf" << EOF
+  cat > "${chrootPath}/etc/sysctl.d/99-swappiness.conf" << EOF
 vm.swappiness=10
 vm.vfs_cache_pressure=50
 EOF
@@ -287,11 +290,11 @@ EOF
 
 bootLoaderInChroot() {
   printMessage "Installing systemd-boot"
-  arch-chroot /mnt bootctl install
+  arch-chroot ${chrootPath} bootctl install
 
   printMessage "Systemd-boot pacman hook"
-  mkdir -p /mnt/etc/pacman.d/hooks
-  cat > "/mnt/etc/pacman.d/hooks/100-systemd-boot.hook" << EOF
+  mkdir -p ${chrootPath}/etc/pacman.d/hooks
+  cat > "${chrootPath}/etc/pacman.d/hooks/100-systemd-boot.hook" << EOF
 [Trigger]
 Type = Package
 Operation = Upgrade
@@ -303,14 +306,14 @@ Exec = /usr/bin/bootctl update
 EOF
 
   printMessage "Systemd-boot entries configuration"
-  cat > "/mnt/boot/loader/entries/archlinux.conf" << EOF
+  cat > "${chrootPath}/boot/loader/entries/archlinux.conf" << EOF
 title   Arch Linux
 linux   /vmlinuz-linux
 initrd  /intel-ucode.img
 initrd  /initramfs-linux.img
 options root=PARTUUID=${rootPartUuid} rw
 EOF
-  cat > "/mnt/boot/loader/entries/archlinux-fallback.conf" << EOF
+  cat > "${chrootPath}/boot/loader/entries/archlinux-fallback.conf" << EOF
 title   Arch Linux (fallback initramfs)
 linux   /vmlinuz-linux
 initrd  /intel-ucode.img
@@ -319,18 +322,18 @@ options root=PARTUUID=${rootPartUuid} rw
 EOF
 
   printMessage "Systemd-boot loader configuration"
-  cat > "/mnt/boot/loader/loader.conf" << EOF
+  cat > "${chrootPath}/boot/loader/loader.conf" << EOF
 default  arch*.conf
 timeout  1
 EOF
 
   printMessage "Systemd-boot update"
-  arch-chroot /mnt bootctl update
+  arch-chroot ${chrootPath} bootctl update
 }
 
 endInstallation() {
   printMessage "Adding Numlock On service"
-  cat > /mnt/etc/systemd/system/numlockon.service << "EOF"
+  cat > ${chrootPath}/etc/systemd/system/numlockon.service << "EOF"
 [Unit]
 Description=Switch on numlock from tty1 to tty6
 [Service]
@@ -340,13 +343,13 @@ WantedBy=multi-user.target
 EOF
 
   printMessage "Adding common utilities"
-  pacstrap /mnt base-devel linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils dnsutils nss-mdns reflector avahi
-  
+  pacstrap ${chrootPath} base-devel linux-headers efibootmgr dhcpcd ntp modemmanager iwd inetutils dnsutils nss-mdns reflector avahi
+
   printMessage "Starting services"
-  arch-chroot /mnt systemctl enable sshd avahi-daemon numlockon fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
+  arch-chroot ${chrootPath} systemctl enable sshd avahi-daemon numlockon fstrim.timer iwd ModemManager systemd-resolved ntpd dhcpcd
 
   printMessage "Adding reflection configuration"
-  cat > "/mnt/etc/xdg/reflector/reflector.conf" << EOF
+  cat > "${chrootPath}/etc/xdg/reflector/reflector.conf" << EOF
 --country France
 --protocol https
 --latest 5
@@ -355,16 +358,16 @@ EOF
 EOF
 
   printMessage "Adding the user"
-  arch-chroot /mnt useradd -m $userName
+  arch-chroot ${chrootPath} useradd -m $userName
 
   printMessage "Adding the user password"
-  echo $userName:$userPassword | arch-chroot /mnt chpasswd
+  echo $userName:$userPassword | arch-chroot ${chrootPath} chpasswd
 
   printMessage "Adding the user in some groups"
-  arch-chroot /mnt usermod -aG wheel,audio,optical,storage,video $userName
+  arch-chroot ${chrootPath} usermod -aG wheel,audio,optical,storage,video $userName
 
   printMessage "Adding the user in sudoers"
-  cat > "/mnt/etc/sudoers.d/wheel" << EOF
+  cat > "${chrootPath}/etc/sudoers.d/wheel" << EOF
 %wheel ALL=(ALL) ALL
 Defaults timestamp_type=global
 Defaults timestamp_timeout=30
@@ -376,23 +379,23 @@ EOF
   select opt in yes no ; do
   case $opt in
     yes)
-      cp ./desktopInstall.sh /mnt/home/${userName}/
-      chmod +x /mnt/home/${userName}/desktopInstall.sh      
+      cp ./desktopInstall.sh ${chrootPath}/home/${userName}/
+      chmod +x ${chrootPath}/home/${userName}/desktopInstall.sh
       break
       ;;
     no)
       break
       ;;
-    *) 
+    *)
       echo "Invalid option $REPLY"
       ;;
     esac
   done
 
   printMessage "Unmouting the new system"
-  swapoff /mnt/swapfile
-  umount /mnt/boot
-  umount /mnt
+  swapoff ${chrootPath}/swapfile
+  umount ${chrootPath}/boot
+  umount ${chrootPath}
 
   printMessage "Congratulation! The base system is installed, you can now reboot!"
 }
