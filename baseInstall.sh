@@ -1,24 +1,35 @@
 #!/bin/bash
 
-diskList=$(lsblk -d -p -n -l -o NAME,SIZE -e 7,11)
-partitionList=$(lsblk -p -n -l -o NAME,SIZE -e 7,11)
+# Name: baseInstall.sh
+# Description: Install the Archlinux system, based on official documentation, with some customizations.
+# Author: Titux Metal <tituxmetal[at]lgdweb[dot]fr>
+# Url: https://github.com/ArchLinuxCustomEasy/scripts
+# Version: 1.0
+# Revision: 2021.09.17
+# License: MIT License
+
+diskList="$(lsblk -d -p -n -l -o NAME,SIZE -e 7,11)"
+partitionList="$(lsblk -p -n -l -o NAME,SIZE -e 7,11)"
 chrootPath="/mnt/alice"
-installationDisk=''
-bootPartition=''
-rootPartition=''
-rootPartUuid=''
-hostName=''
-userName=''
-userPassword=''
-rootPassword=''
-swapfileSize=''
+installationDisk=""
+bootPartition=""
+rootPartition=""
+rootPartUuid=""
+hostName=""
+userName=""
+userPassword=""
+rootPassword=""
+swapfileSize=""
+addAliceRepo=""
+copyInstallDesktopScript=""
+unmountNewSystem=""
 
 printMessage() {
   message=$1
   tput setaf 2
-  echo "-------------------------------------------"
-  echo "$message"
-  echo "-------------------------------------------"
+  echo -en "-------------------------------------------\n"
+  echo -en "${message}\n"
+  echo -en "-------------------------------------------\n"
   tput sgr0
 }
 
@@ -50,13 +61,13 @@ selectInstallDisk() {
 }
 
 makeDiskPartitions() {
-  printMessage "Disk partition"
+  printMessage "Partition the disk"
 
-  PS3="Make disk partitions? "
+  PS3="Make the disk partitions? "
   select opt in yes no ; do
   case $opt in
     yes )
-      printMessage "Reinitialize the installation disk; CAUTION: this will delete all data on ${installationDisk} disk, please do this ONLY if you are SURE!"
+      printMessage "Reset the installation disk; CAUTION: This action deletes ALL data on ${installationDisk} disk, please do it ONLY if you are absolutely SURE!"
       PS3="Reinitialize installation disk? "
       select opt in yes no ; do
       case $opt in
@@ -205,6 +216,66 @@ chooseRootPassword() {
   done
 }
 
+askAddAlicePkgRepo() {
+  printMessage "Add Alice Custom package repository"
+
+  PS3="Would you add Alice Custom package repository? "
+  select opt in yes no ; do
+  case $opt in
+    yes)
+      addAliceRepo="yes"
+      break
+      ;;
+    no)
+      break
+      ;;
+    *)
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
+}
+
+askCopyDesktopInstallScript() {
+  printMessage "Copy the desktop install script on new system"
+
+  PS3="Would you copy the desktop install script on new system? "
+  select opt in yes no ; do
+  case $opt in
+    yes)
+      copyInstallDesktopScript="yes"
+      break
+      ;;
+    no)
+      break
+      ;;
+    *)
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
+}
+
+askUnountNewSystem() {
+  printMessage "Unmount partitions from chroot"
+
+  PS3="Would you unmount the partitions from chroot? "
+  select opt in yes no ; do
+  case $opt in
+    yes)
+      unmountNewSystem="yes"
+      break
+      ;;
+    no)
+      break
+      ;;
+    *)
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
+}
+
 formatPartitions() {
   printMessage "Formatting boot partition"
   echo "Y" | mkfs.fat -n ESP -F32 $bootPartition
@@ -216,19 +287,18 @@ formatPartitions() {
 mountPartitions() {
   printMessage "Creating the chroot mount point ${chrootPath}"
   mkdir -p ${chrootPath}
-  printMessage "Mounting root partition"
+  printMessage "Mounting root partition in ${chrootPath}"
   mount $rootPartition ${chrootPath}
+  printMessage "Mounting boot partition in ${chrootPath}/boot"
   mkdir -p ${chrootPath}/boot
-  printMessage "Mounting boot partition"
   mount $bootPartition ${chrootPath}/boot
 }
 
 makeSwapFile() {
-  printMessage "Creating the swapfile"
+  printMessage "Creating the swapfile in ${chrootPath}/swapfile"
   dd if=/dev/zero of=${chrootPath}/swapfile bs=1M count=$swapfileSize status=progress
-  printMessage "Changing permissions on swapfile"
+  printMessage "Changing permissions and enable swapfile"
   chmod 600 ${chrootPath}/swapfile
-  printMessage "Mounting/enable the swapfile"
   mkswap ${chrootPath}/swapfile
   swapon ${chrootPath}/swapfile
 }
@@ -248,10 +318,7 @@ baseConfigurationInChroot() {
 
   printMessage "Locale configuration in chroot"
   sed -i '/#fr_FR.UTF-8/s/^#//g' ${chrootPath}/etc/locale.gen
-  cat > "${chrootPath}/etc/locale.conf" << EOF
-LANG=fr_FR.UTF-8
-LC_COLLATE=C
-EOF
+  echo -en "LANG=fr_FR.UTF-8\nLC_COLLATE=C" > ${chrootPath}/etc/locale.conf
 
   printMessage "Console keyboard configuration in chroot"
   echo "KEYMAP=fr" > ${chrootPath}/etc/vconsole.conf
@@ -282,10 +349,7 @@ systemConfigurationInChroot() {
   genfstab -U ${chrootPath} >> ${chrootPath}/etc/fstab
 
   printMessage "Optimizing swap usage"
-  cat > "${chrootPath}/etc/sysctl.d/99-swappiness.conf" << EOF
-vm.swappiness=10
-vm.vfs_cache_pressure=50
-EOF
+  echo -en "vm.swappiness=10\nvm.vfs_cache_pressure=50" > ${chrootPath}/etc/sysctl.d/99-swappiness.conf
 }
 
 bootLoaderInChroot() {
@@ -373,29 +437,27 @@ Defaults timestamp_type=global
 Defaults timestamp_timeout=30
 EOF
 
-  printMessage "Copy the desktop install script in new system"
+  if [[ "${addAliceRepo}" == "yes" ]] ;then
+    printMessage "Add Alice package repository to the new system"
+    git clone https://github.com/ArchLinuxCustomEasy/repository.git /tmp/alice
+    rsync -rltv --progress --stats --exclude=.git /tmp/alice ${chrootPath}/opt/
+    echo -en '[alice]\nSigLevel = Never\nServer = file:///opt/alice/$arch' >> ${chrootPath}/etc/pacman.conf
+  fi
 
-  PS3="Would you add desktopInstall.sh script to the new system"
-  select opt in yes no ; do
-  case $opt in
-    yes)
-      cp ./desktopInstall.sh ${chrootPath}/home/${userName}/
-      chmod +x ${chrootPath}/home/${userName}/desktopInstall.sh
-      break
-      ;;
-    no)
-      break
-      ;;
-    *)
-      echo "Invalid option $REPLY"
-      ;;
-    esac
-  done
+  if [[ "${copyInstallDesktopScript}" == "yes" ]] ;then
+    printMessage "Copy desktopInstall.sh file to the new system"
+    cp ./desktopInstall.sh ${chrootPath}/home/${userName}/
+    chmod +x ${chrootPath}/home/${userName}/desktopInstall.sh
+    mount --bind ${chrootPath} ${chrootPath}
+    arch-chroot -u ${userName} ${chrootPath}/home/${userName} sudo sh desktopInstall.sh
+  fi
 
-  printMessage "Unmouting the new system"
-  swapoff ${chrootPath}/swapfile
-  umount ${chrootPath}/boot
-  umount ${chrootPath}
+  if [[ "${unmountNewSystem}" == "yes" ]] ;then
+    printMessage "Unmouting the new system"
+    swapoff ${chrootPath}/swapfile
+    umount -R ${chrootPath}/boot
+    umount -R ${chrootPath}
+  fi
 
   printMessage "Congratulation! The base system is installed, you can now reboot!"
 }
@@ -410,6 +472,9 @@ configureInstallation() {
   chooseUserPassword
   chooseRootPassword
   chooseSwapfileSize
+  askAddAlicePkgRepo
+  askCopyDesktopInstallScript
+  askUnountNewSystem
   printMessage "
     Installation Disk: ${disk}
     Boot Partition: ${bootPartition}
