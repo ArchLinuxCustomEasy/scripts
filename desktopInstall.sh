@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Name: desktopInstall.sh
+# Description: Install a complete desktop environment and some funny stuff.
+# Author: Titux Metal <tituxmetal[at]lgdweb[dot]fr>
+# Url: https://github.com/ArchLinuxCustomEasy/scripts
+# Version: 1.0
+# Revision: 2021.09.17
+# License: MIT License
+
 # Video drivers Nvidia See https://wiki.archlinux.org/title/NVIDIA
 # Video drivers Nouveau See https://wiki.archlinux.org/title/Nouveau
 # Video drivers Intel See https://wiki.archlinux.org/title/Intel_graphics
@@ -215,7 +223,7 @@ askAddAurPackages() {
   select opt in yes no ; do
   case $opt in
     yes)
-      aurPackages="ly visual-studio-code-bin pamac-aur downgrade"
+      aurPackages="yay-bin ly visual-studio-code-bin pamac-aur libpamac-aur downgrade"
       break
       ;;
     no)
@@ -259,10 +267,8 @@ installAurPackageManager() {
 
 installAurPackages() {
   if ! [ -z "${aurPackages}" ]; then
-    installAurPackageManager
-
-    printMessage "Installing aur packages: ${aurPackages}"
-    su - $(logname) -c "yay -Sy --nodiffmenu --removemake --noconfirm ${aurPackages}"
+    printMessage "Packages that would be installed: ${aurPackages}"
+    pacman -Sy --noconfirm --needed ${aurPackages}
     systemctl enable ly
   fi
 }
