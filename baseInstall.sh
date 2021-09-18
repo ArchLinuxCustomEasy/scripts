@@ -451,7 +451,6 @@ EOF
     printMessage "Copy desktopInstall.sh file to the new system"
     cp ./desktopInstall.sh ${chrootPath}/home/${userName}/
     chmod +x ${chrootPath}/home/${userName}/desktopInstall.sh
-    chown ${userName}:${userName} ${chrootPath}/home/${userName}/desktopInstall.sh
   fi
 
   if [[ "${unmountNewSystem}" == "yes" ]] ;then
