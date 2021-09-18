@@ -430,6 +430,9 @@ EOF
   printMessage "Adding the user in some groups"
   arch-chroot ${chrootPath} usermod -aG wheel,audio,optical,storage,video $userName
 
+  printMessage "Do not lock the user when password is given wrong 3 times"
+  sed -i "s/# admin_group =/admin_group = wheel/" ${chrootPath}/etc/security/faillock.conf
+
   printMessage "Adding the user in sudoers"
   cat > "${chrootPath}/etc/sudoers.d/wheel" << EOF
 %wheel ALL=(ALL) ALL
