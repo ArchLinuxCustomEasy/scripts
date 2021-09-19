@@ -42,19 +42,19 @@ commonFontPackages="terminus-font noto-fonts ttf-bitstream-vera ttf-dejavu ttf-d
 webBrowserPackages="firefox firefox-i18n-fr firefox-ublock-origin firefox-dark-reader firefox-extension-passff firefox-extension-privacybadger torbrowser-launcher"
 
 # System Utilities
-commonSystemUtilsPackages="gvfs gvfs-gphoto2 gvfs-afc gvfs-goa gvfs-google gvfs-mtp gvfs-nfs gvfs-smb vim rsync htop neofetch xed alacritty chezmoi"
+commonSystemUtilsPackages="vim rsync htop neofetch xed alacritty chezmoi pcmanfm"
 
 # Archive utilities
 archiveUtilsPackages="xarchiver zip unzip unrar p7zip"
 
 # File system utilities
-fileSystemUtilsPackages="gptfdisk mtools xfsprogs dosfstools gparted f2fs-tools exfatprogs gpart udftools"
+fileSystemUtilsPackages="gptfdisk mtools xfsprogs dosfstools gparted f2fs-tools exfatprogs gpart udftools gvfs gvfs-gphoto2 gvfs-afc gvfs-goa gvfs-google gvfs-mtp gvfs-nfs gvfs-smb libgsf"
 
 # Xorg
 xorgPackages="xorg xorg-xinit xorg-server xdg-utils xdg-user-dirs xbindkeys xcompmgr numlockx tumbler"
 
 # Icon and dark themes
-darkThemesPackages="arc-gtk-theme arc-icon-theme papirus-icon-theme materia-gtk-theme gtk-engine-murrine kvantum-theme-materia archlinux-wallpaper"
+darkThemesPackages="arc-gtk-theme arc-icon-theme papirus-icon-theme gtk-engine-murrine archlinux-wallpaper kvantum-qt5"
 
 printMessage() {
   message=$1
