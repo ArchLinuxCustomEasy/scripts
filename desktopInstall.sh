@@ -453,7 +453,7 @@ addAliceDarkTheme() {
     printMessage "Add user config file in dconf"
     echo -en "service-db:keyfile/user\nuser-db:user" > /etc/dconf/profile/user
 
-    if (cat "${workDir}/{${desktopEnvironment}Desktop.ini,xedEditor.ini}" &> /dev/null) ;then
+    if (cat ${workDir}/${desktopEnvironment}Desktop.ini &> /dev/null) ;then
       printMessage "Add ${desktopEnvironment}Desktop.ini and xedEditor.ini in dconf"
       cat ${workDir}/{${desktopEnvironment}Desktop.ini,xedEditor.ini} > ${workDir}/user.txt
       printMessage "Create dconf directory in ${userConfigDir}"
