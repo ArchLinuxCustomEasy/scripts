@@ -76,7 +76,7 @@ aliceDarkThemeRepo="https://github.com/ArchLinuxCustomEasy/darkTheme.git"
 checkAddAliceDarkTheme=""
 
 # Alice packages
-alicePackages="yay-bin ly visual-studio-code-bin pamac-aur libpamac-aur downgrade"
+alicePackages="yay-bin ly visual-studio-code-bin pamac-aur libpamac-aur downgrade timeshift"
 checkAlicePackages=""
 
 # Icon and dark themes
