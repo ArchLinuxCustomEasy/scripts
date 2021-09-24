@@ -25,10 +25,10 @@ hdwVideoAccelPackages="mesa-vdpau mesa-demos libva-mesa-driver libva-vdpau-drive
 
 # Multimedia packages: readers/viewers, editors/capture, rip/encode, burn for images, audio, video
 declare -a multimediaPackages
-checkInstallMultimediaReaders=""
-checkInstallMultimediaEditors=""
-checkInstallMultimediaRipencode=""
-checkInstallMultimediaBurn=""
+checkInstallMultimediaReaders=0
+checkInstallMultimediaEditors=0
+checkInstallMultimediaRipencode=0
+checkInstallMultimediaBurn=0
 multimediaReadersPackages="vlc quodlibet shotwell evince"
 multimediaEditorsPackages="gimp inkscape scour vokoscreen"
 multimediaRipencodePackages="asunder handbrake handbrake-cli"
@@ -43,9 +43,9 @@ bluetoothPackages="bluez bluez-utils blueman pulseaudio-bluetooth"
 checkInstallBluetooth=0
 
 declare -a desktopEnvPackages
-checkInstallDesktopXfce=""
-checkInstallDesktopMate=""
-checkInstallDesktopI3=""
+checkInstallDesktopXfce=0
+checkInstallDesktopMate=0
+checkInstallDesktopI3=0
 desktopEnvironment=""
 # Xfce desktop environment See: https://wiki.archlinux.org/title/Xfce
 desktopXfcePackages="xfce4 mousepad thunar-archive-plugin thunar-media-tags-plugin xfce4-battery-plugin xfce4-cpufreq-plugin xfce4-cpugraph-plugin xfce4-datetime-plugin xfce4-diskperf-plugin xfce4-fsguard-plugin xfce4-mount-plugin xfce4-mpc-plugin xfce4-netload-plugin xfce4-notifyd xfce4-pulseaudio-plugin xfce4-sensors-plugin xfce4-systemload-plugin xfce4-taskmanager xfce4-wavelan-plugin xfce4-weather-plugin xfce4-whiskermenu-plugin xfce4-xkb-plugin"
@@ -69,15 +69,15 @@ fileSystemUtilsPackages="gptfdisk mtools xfsprogs dosfstools gparted f2fs-tools 
 xorgPackages="xorg xorg-xinit xorg-server xdg-utils xdg-user-dirs xbindkeys xcompmgr numlockx tumbler"
 
 # Desktop/Laptop Apple keyboard See: https://wiki.archlinux.org/title/Apple_Keyboard
-appleKeyboardConfig=""
+appleKeyboardConfig=0
 
 # Custom Alice dark theme repository See: https://github.com/ArchLinuxCustomEasy/darkTheme.git
 aliceDarkThemeRepo="https://github.com/ArchLinuxCustomEasy/darkTheme.git"
-checkAddAliceDarkTheme=""
+checkAddAliceDarkTheme=0
 
 # Alice packages
 alicePackages="yay-bin ly visual-studio-code-bin pamac-aur libpamac-aur downgrade timeshift"
-checkAlicePackages=""
+checkAlicePackages=0
 
 # Icon and dark themes
 darkThemesPackages="arc-gtk-theme arc-icon-theme papirus-icon-theme gtk-engine-murrine archlinux-wallpaper kvantum-qt5"
@@ -481,6 +481,7 @@ prepare() {
   askAddBluetoothSupport
   askDesktopEnvironmentInstall
   askAddAppleKeyboardConfig
+  askAddAlicePackages
   askAddAliceDarkTheme
   printMessage "End of preparation, start install!"
 }
