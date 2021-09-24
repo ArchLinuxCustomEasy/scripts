@@ -406,7 +406,7 @@ installPackages() {
   printMessage "Packages that would be installed: ${packagesToInstall[*]}"
   pacman -Sy --noconfirm --needed ${packagesToInstall[*]}
 
-  if ( systemctl status ly.service &>/dev/null ) ; then
+  if ( systemctl status ly.service | grep inactive &>/dev/null ) ; then
     printMessage "Enable ly service"
     systemctl enable ly.service
   fi
