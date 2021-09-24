@@ -64,7 +64,7 @@ commonSystemUtilsPackages="vim rsync htop neofetch xed alacritty rofi pcmanfm"
 # Archive utilities
 archiveUtilsPackages="xarchiver zip unzip unrar p7zip"
 # File system utilities
-fileSystemUtilsPackages="gptfdisk mtools xfsprogs dosfstools gparted f2fs-tools exfatprogs gpart udftools gvfs gvfs-gphoto2 gvfs-afc gvfs-goa gvfs-google gvfs-mtp gvfs-nfs gvfs-smb libgsf"
+fileSystemUtilsPackages="gptfdisk mtools xfsprogs dosfstools gparted f2fs-tools exfatprogs gpart udftools gvfs gvfs-gphoto2 gvfs-afc gvfs-goa gvfs-google gvfs-mtp gvfs-nfs gvfs-smb libgsf sshfs fuseiso"
 # Xorg
 xorgPackages="xorg xorg-xinit xorg-server xdg-utils xdg-user-dirs xbindkeys xcompmgr numlockx tumbler"
 
