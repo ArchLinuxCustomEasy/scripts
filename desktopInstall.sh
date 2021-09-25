@@ -18,6 +18,10 @@ nouveauDriverPackages="xf86-video-nouveau"
 intelDriverPackages="libva-intel-driver intel-media-driver xf86-video-intel"
 # Video drivers Amd See https://wiki.archlinux.org/title/AMDGPU
 amdDriverPackages="xf86-video-amdgpu xf86-video-ati radeontop vulkan-radeon amdvlk"
+# Virtual Machine (kvm) video drivers
+# See: https://wiki.archlinux.org/title/QEMU#Enabling_SPICE_support_on_the_guest
+# Read this post: https://stackoverflow.com/a/62021367
+virtualMachineDriverPackages="spice-vdagent xf86-video-qxl"
 # Video drivers OpenGL See https://wiki.archlinux.org/title/OpenGL
 genericDriverPackages="mesa mesa-demos xf86-video-vesa"
 # Hardware Video accel. Nvidia/Intel/Amd See https://wiki.archlinux.org/title/Hardware_video_acceleration
@@ -132,7 +136,7 @@ askInstallVideoDrivers() {
   printMessage "Choose video driver video drivers"
 
   PS3="Select which video drivers to install: "
-  select opt in nvidia nouveau intel amd generic nodriver ; do
+  select opt in nvidia nouveau intel amd vm generic nodriver ; do
   case $opt in
     nvidia)
       videoDriverPackages+=($nvidiaDriverPackages)
@@ -152,6 +156,11 @@ askInstallVideoDrivers() {
     amd)
       videoDriverPackages+=($amdDriverPackages)
       printMessage "Amd video drivers: ${amdDriverPackages}"
+      break
+      ;;
+    vm)
+      videoDriverPackages+=($virtualMachineDriverPackages)
+      printMessage "Virtual machine (kvm) video drivers: ${virtualMachineDriverPackages}"
       break
       ;;
     generic)
