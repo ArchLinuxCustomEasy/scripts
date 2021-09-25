@@ -177,7 +177,7 @@ askInstallMultimediaUtils() {
   select opt in readers editors ripencode burn quit ; do
   case $opt in
     readers)
-      if [[ $checkInstallMultimediaReaders != 0 ]] ; then
+      if [[ $checkInstallMultimediaReaders == 0 ]] ; then
         multimediaPackages+=($multimediaReadersPackages)
         checkInstallMultimediaReaders=1
         printMessage "Multimedia readers packages: ${multimediaReadersPackages}"
@@ -185,7 +185,7 @@ askInstallMultimediaUtils() {
       fi
       ;;
     editors)
-      if [[ $checkInstallMultimediaEditors != 0 ]] ; then
+      if [[ $checkInstallMultimediaEditors == 0 ]] ; then
         multimediaPackages+=($multimediaEditorsPackages)
         checkInstallMultimediaEditors=1
         printMessage "Multimedia editors packages: ${multimediaEditorsPackages}"
@@ -193,7 +193,7 @@ askInstallMultimediaUtils() {
       fi
       ;;
     ripencode)
-      if [[ $checkInstallMultimediaRipencode != 0 ]] ; then
+      if [[ $checkInstallMultimediaRipencode == 0 ]] ; then
         multimediaPackages+=($multimediaRipencodePackages)
         checkInstallMultimediaRipencode=1
         printMessage "Multimedia rip/encode packages: ${multimediaRipencodePackages}"
@@ -201,7 +201,7 @@ askInstallMultimediaUtils() {
       fi
       ;;
     burn)
-      if [[ $checkInstallMultimediaBurn != 0 ]] ; then
+      if [[ $checkInstallMultimediaBurn == 0 ]] ; then
         multimediaPackages+=($multimediaBurnPackages)
         checkInstallMultimediaBurn=1
         printMessage "Multimedia cd/dvd burn packages: ${multimediaBurnPackages}"
@@ -414,9 +414,6 @@ installPackages() {
 
 addAppleKeyboardConfig() {
   if ! [ -z "$appleKeyboardConfig" ]; then
-    printMessage "Adding Apple keyboard configuration in Xorg"
-    isoLayout=${appleKeyboardConfig}
-
     printMessage "Adding apple keyboard configuration in xorg"
     cat > "/etc/X11/xorg.conf.d/00-keyboard.conf" << EOF
 Section "InputClass"
