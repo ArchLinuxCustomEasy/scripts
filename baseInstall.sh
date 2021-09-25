@@ -305,7 +305,7 @@ makeSwapFile() {
 
 installBaseSystemInChroot() {
   printMessage "Installing the base system in chroot"
-  pacstrap ${chrootPath} base linux linux-firmware vim nano intel-ucode bash-completion git openssh rsync
+  pacstrap ${chrootPath} base linux linux-firmware vim nano intel-ucode bash-completion git openssh rsync ebtables
 }
 
 baseConfigurationInChroot() {
