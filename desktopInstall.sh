@@ -33,7 +33,7 @@ checkInstallMultimediaReaders=0
 checkInstallMultimediaEditors=0
 checkInstallMultimediaRipencode=0
 checkInstallMultimediaBurn=0
-multimediaReadersPackages="vlc quodlibet shotwell evince"
+multimediaReadersPackages="vlc quodlibet shotwell evince playerctl"
 multimediaEditorsPackages="gimp inkscape scour vokoscreen"
 multimediaRipencodePackages="asunder handbrake handbrake-cli"
 multimediaBurnPackages="brasero lsdvd dvdauthor dvdbackup libdvdcss dvd+rw-tools libdvdread libdvdnav libcdio libisoburn"
@@ -64,7 +64,7 @@ commonFontPackages="terminus-font gnu-free-fonts noto-fonts ttf-bitstream-vera t
 # Web browser and common extensions
 webBrowserPackages="firefox firefox-i18n-fr firefox-ublock-origin firefox-dark-reader firefox-extension-passff firefox-extension-privacybadger torbrowser-launcher"
 # System Utilities
-commonSystemUtilsPackages="vim rsync htop neofetch xed alacritty rofi pcmanfm"
+commonSystemUtilsPackages="vim rsync htop neofetch xed alacritty rofi pcmanfm feh galculator"
 # Archive utilities
 archiveUtilsPackages="xarchiver zip unzip unrar p7zip"
 # File system utilities
