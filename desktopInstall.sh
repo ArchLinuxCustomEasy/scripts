@@ -462,7 +462,7 @@ addAliceDarkTheme() {
     su - $(logname) -c "rsync ${params} ${workDir}/dotMozilla/ ${userHomeDir}/.mozilla"
     printMessage "Copy gtkrc files in /etc/gtk... for dark theme support with apps launched with sudo command"
     cp ${workDir}/dotFiles/.gtkrc-2.0 /etc/gtk-2.0/gtkrc
-    cp ${workDir}/dotConfig/settings.ini /etc/gtk-3.0/settings.ini
+    cp ${workDir}/dotConfig/gtk-3.0/settings.ini /etc/gtk-3.0/settings.ini
 
     printMessage "Create dconf profile directory"
     mkdir -p /etc/dconf/{profile,db/local.d}
