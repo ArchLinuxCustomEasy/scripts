@@ -266,14 +266,14 @@ askDesktopEnvironmentInstall() {
     xfce)
       desktopEnvPackages+=(${desktopXfcePackages})
       checkInstallDesktopXfce=1
-      desktopEnvironment="xfce"
+      desktopEnvironment="xfce4"
       printMessage "Xfce desktop packages: ${desktopEnvPackages[*]}"
       break
       ;;
     i3wm)
       desktopEnvPackages+=(${desktopI3Packages})
       checkInstallDesktopI3=1
-      desktopEnvironment="i3wm"
+      desktopEnvironment="i3"
       printMessage "I3 window manager packages (WIP): ${desktopEnvPackages[*]}"
       break
       ;;
@@ -448,16 +448,21 @@ addAliceDarkTheme() {
     printMessage "Clone ${aliceDarkThemeRepo} in ${workDir}"
     git clone ${aliceDarkThemeRepo} ${workDir}
     params="-rltv --stats --progress"
-    if [[ "${desktopEnvironment}" == "mate" || "${desktopEnvironment}" == "i3wm" ]] ;then
-      params+=" --exclude=xfce4"
-      printMessage "Desktop environment is not Mate or I3wm, we exclude xfce4 directory from rsync cmd: ${params}"
+
+    if (ls ${workDir}/${desktopEnvironment} &> /dev/null) ;then
+      printMessage "Copy ${desktopEnvironment} files in ${userConfigDir}/ with rsync"
+      su - $(logname) -c "rsync ${params} ${workDir}/${desktopEnvironment} ${userConfigDir}/"
     fi
+
     printMessage "Copy dotConfig/* files in ${userConfigDir}/ with rsync"
     su - $(logname) -c "rsync ${params} ${workDir}/dotConfig/* ${userConfigDir}/"
     printMessage "Copy dotFiles/* files in ${userHomeDir}/ with rsync"
     su - $(logname) -c "rsync ${params} ${workDir}/dotFiles/ ${userHomeDir}/"
     printMessage "Copy dotMozilla/* files in ${userHomeDir}/ with rsync"
     su - $(logname) -c "rsync ${params} ${workDir}/dotMozilla/ ${userHomeDir}/.mozilla"
+    printMessage "Copy gtkrc files in /etc/gtk... for dark theme support with apps launched with sudo command"
+    cp ${workDir}/dotFiles/.gtkrc-2.0 /etc/gtk-2.0/gtkrc
+    cp ${workDir}/dotConfig/settings.ini /etc/gtk-3.0/settings.ini
 
     printMessage "Create dconf profile directory"
     mkdir -p /etc/dconf/{profile,db/local.d}
