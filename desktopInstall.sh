@@ -58,7 +58,7 @@ desktopMatePackages="mate atril caja-image-converter caja-open-terminal caja-sen
 # I3 window manager See:
 # https://wiki.archlinux.org/title/i3
 # https://i3wm.org/docs/userguide.html
-desktopI3Packages="i3 perl-json-xs perl-anyevent-i3"
+desktopI3Packages="i3 perl-json-xs perl-anyevent-i3 polkit-gnome dunst"
 # Fonts See: https://wiki.archlinux.org/title/Fonts
 commonFontPackages="terminus-font gnu-free-fonts noto-fonts ttf-bitstream-vera ttf-dejavu ttf-droid ttf-font-awesome ttf-freefont ttf-inconsolata ttf-liberation ttf-roboto ttf-ubuntu-font-family ttf-opensans ttf-fira-code ttf-fira-mono otf-fira-mono"
 # Web browser and common extensions
