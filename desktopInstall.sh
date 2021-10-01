@@ -5,7 +5,7 @@
 # Author: Titux Metal <tituxmetal[at]lgdweb[dot]fr>
 # Url: https://github.com/ArchLinuxCustomEasy/scripts
 # Version: 1.0
-# Revision: 2021.09.17
+# Revision: 2021.10.01
 # License: MIT License
 
 # Video Driver Packages
@@ -71,6 +71,15 @@ archiveUtilsPackages="xarchiver zip unzip unrar p7zip"
 fileSystemUtilsPackages="gptfdisk mtools xfsprogs dosfstools gparted f2fs-tools exfatprogs gpart udftools gvfs gvfs-gphoto2 gvfs-afc gvfs-goa gvfs-google gvfs-mtp gvfs-nfs gvfs-smb libgsf sshfs fuseiso"
 # Xorg
 xorgPackages="xorg xorg-xinit xorg-server xdg-utils xdg-user-dirs xbindkeys xcompmgr numlockx tumbler"
+
+# Development Packages
+declare -a developmentPackages
+checkInstallDevelopmentWeb=0
+checkInstallDevelopmentArchlinux=0
+checkInstallDevelopmentDevops=0
+developmentWebPackages="nodejs yarn"
+developmentArchlinuxPackages="archiso libvirt ebtables dnsmasq bridge-utils openbsd-netcat virt-manager virt-viewer virt-install libguestfs edk2-ovmf qemu dhclient dmidecode spice-vdagent spice-gtk"
+developmentDevopsPackages="ansible docker docker-compose"
 
 # Desktop/Laptop Apple keyboard See: https://wiki.archlinux.org/title/Apple_Keyboard
 appleKeyboardConfig=0
@@ -221,6 +230,50 @@ askInstallMultimediaUtils() {
       if ! [ -z "${multimediaPackages[*]}" ]; then
         multimediaPackages+=($audioVideoCodecGst)
         printMessage "Multimedia packages that would be installed: ${multimediaPackages[*]}"
+      fi
+      printMessage "Multimedia done!"
+      break
+      ;;
+    *)
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
+}
+
+askInstallDevelopmentUtils() {
+  printMessage "Development utilities"
+
+  PS3="Choose what Development utilities to install: "
+  select opt in web archlinux devops quit ; do
+  case $opt in
+    web)
+      if [[ $checkInstallDevelopmentWeb == 0 ]] ; then
+        developmentPackages+=($developmentWebPackages)
+        checkInstallDevelopmentWeb=1
+        printMessage "Development Web packages: ${developmentWebPackages}"
+        continue
+      fi
+      ;;
+    archlinux)
+      if [[ $checkInstallDevelopmentArchlinux == 0 ]] ; then
+        developmentPackages+=($developmentArchlinuxPackages)
+        checkInstallDevelopmentArchlinux=1
+        printMessage "Development Archlinux packages: ${developmentArchlinuxPackages}"
+        continue
+      fi
+      ;;
+    devops)
+      if [[ $checkInstallDevelopmentDevops == 0 ]] ; then
+        developmentPackages+=($developmentDevopsPackages)
+        checkInstallDevelopmentDevops=1
+        printMessage "Development devops packages: ${developmentDevopsPackages}"
+        continue
+      fi
+      ;;
+    quit)
+      if ! [ -z "${developmentPackages[*]}" ]; then
+        printMessage "Development utilities packages that would be installed: ${developmentPackages[*]}"
       fi
       printMessage "Multimedia done!"
       break
@@ -400,6 +453,11 @@ installPackages() {
     packagesToInstall+=("${darkThemesPackages}")
   fi
 
+  if ! [ -z "${developmentPackages[*]}" ]; then
+    printMessage "Add development packages"
+    packagesToInstall+=("${developmentPackages[*]}")
+  fi
+
   if [[ $checkAlicePackages != 0 ]] ; then
     printMessage "Add Alice packages"
     packagesToInstall+=("${alicePackages}")
@@ -418,6 +476,23 @@ installPackages() {
   if ( ! ls /etc/systemd/system/display-manager.service &>/dev/null ) ; then
     printMessage "Enable ly service"
     systemctl enable ly.service
+  fi
+
+  if [[ $checkInstallDevelopmentArchlinux != 0 ]] ; then
+    printMessage "Enable libvirtd service"
+    systemctl enable virtlogd libvirtd
+    printMessage "Copy default configuration file in /home/$(logname)/.config/libvirt"
+    su - $(logname) -c "mkdir -p /home/$(logname)/.config/libvirt"
+    su - $(logname) -c "cp -v /etc/libvirt/libvirt.conf /home/$(logname)/.config/libvirt/libvirt.conf"
+    chown -R $(logname):wheel /home/$(logname)/.config/libvirt
+    usermod -aG libvirt $(logname)
+  fi
+
+  if [[ $checkInstallDevelopmentDevops != 0 ]] ; then
+    printMessage "Add $(logname) user to docker group"
+    usermod -aG docker $(logname)
+    printMessage "Enable docker service"
+    systemctl enable docker
   fi
 }
 
@@ -492,6 +567,7 @@ prepare() {
   askAddBluetoothSupport
   askDesktopEnvironmentInstall
   askAddAppleKeyboardConfig
+  askInstallDevelopmentUtils
   askAddAlicePackages
   askAddAliceDarkTheme
   printMessage "End of preparation, start install!"
