@@ -544,19 +544,23 @@ addAliceDarkTheme() {
     printMessage "Add user config file in dconf"
     echo -en "service-db:keyfile/user\nuser-db:user" > /etc/dconf/profile/user
 
+    printMessage "Add xedEditor.ini in dconf"
+    cat ${workDir}/xedEditor.ini > ${workDir}/user.txt
+    printMessage "Create dconf directory in ${userConfigDir}"
+    su - $(logname) -c "mkdir -p ${userConfigDir}/dconf"
+
     if (cat ${workDir}/${desktopEnvironment}Desktop.ini &> /dev/null) ;then
-      printMessage "Add ${desktopEnvironment}Desktop.ini and xedEditor.ini in dconf"
-      cat ${workDir}/{${desktopEnvironment}Desktop.ini,xedEditor.ini} > ${workDir}/user.txt
-      printMessage "Create dconf directory in ${userConfigDir}"
-      su - $(logname) -c "mkdir -p ${userConfigDir}/dconf"
-      printMessage "Compile dconf file"
-      dconf compile /etc/dconf/db/user /etc/dconf/db/local.d
-      cat ${workDir}/{${desktopEnvironment}Desktop.ini,xedEditor.ini} > /etc/dconf/db/local.d//user
-      printMessage "Copy user.txt file in ${userConfigDir}/dconf"
-      su - $(logname) -c "cp ${workDir}/user.txt ${userConfigDir}/dconf/"
+      printMessage "Add ${desktopEnvironment}Desktop.ini in dconf"
+      cat ${workDir}/${desktopEnvironment}Desktop.ini >> ${workDir}/user.txt
     fi
-    # printMessage "Remove ${workDir}. End of addAliceDarkTheme function."
-    # rm -rf ${workDir}
+
+    printMessage "Compile dconf file"
+    cp -v ${workDir}/user.txt /etc/dconf/db/local.d/user
+    dconf compile /etc/dconf/db/user /etc/dconf/db/local.d
+    printMessage "Copy user.txt file in ${userConfigDir}/dconf"
+    su - $(logname) -c "cp ${workDir}/user.txt ${userConfigDir}/dconf/"
+    printMessage "Remove ${workDir}. End of addAliceDarkTheme function."
+    rm -rf ${workDir}
   fi
 }
 
