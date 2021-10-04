@@ -5,7 +5,7 @@
 # Author: Titux Metal <tituxmetal[at]lgdweb[dot]fr>
 # Url: https://github.com/ArchLinuxCustomEasy/scripts
 # Version: 1.0
-# Revision: 2021.10.01
+# Revision: 2021.10.04
 # License: MIT License
 
 # Video Driver Packages
@@ -80,6 +80,15 @@ checkInstallDevelopmentDevops=0
 developmentWebPackages="nodejs yarn"
 developmentArchlinuxPackages="archiso libvirt ebtables dnsmasq bridge-utils openbsd-netcat virt-manager virt-viewer virt-install libguestfs edk2-ovmf qemu dhclient dmidecode spice-vdagent spice-gtk"
 developmentDevopsPackages="ansible docker docker-compose"
+
+# Work Office Packages
+declare -a workOfficePackages
+checkInstallLibreOffice=0
+checkInstallOnlyOffice=0
+checkInstallPrinter=0
+libreOfficePackages="libreoffice-fresh libreoffice-fresh-fr"
+onlyOfficePackages="onlyoffice-bin"
+printerPackages="cups cups-pdf usbutils system-config-printer hplip ghostscript gutenprint foomatic-db foomatic-db-engine foomatic-db-ppds foomatic-db-nonfree foomatic-db-gutenprint-ppds foomatic-db-nonfree-ppds "
 
 # Desktop/Laptop Apple keyboard See: https://wiki.archlinux.org/title/Apple_Keyboard
 appleKeyboardConfig=0
@@ -285,6 +294,46 @@ askInstallDevelopmentUtils() {
   done
 }
 
+askInstallWorkOfficeUtils() {
+  printMessage "Work Office utilities"
+
+  PS3="Choose what Work Office utilities to install: "
+  select opt in libreoffice onlyoffice printer quit ; do
+  case $opt in
+    libreoffice)
+      if [[ $checkInstallLibreOffice == 0 ]] ; then
+        workOfficePackages+=($libreOfficePackages)
+        checkInstallLibreOffice=1
+        printMessage "Libre Office packages: ${libreOfficePackages}"
+        continue
+      fi
+      ;;
+    onlyoffice)
+      if [[ $checkInstallOnlyOffice == 0 ]] ; then
+        checkInstallOnlyOffice=1
+        printMessage "Only Office packages: ${onlyOfficePackages}"
+        continue
+      fi
+      ;;
+    printer)
+      if [[ $checkInstallPrinter == 0 ]] ; then
+        workOfficePackages+=($printerPackages)
+        checkInstallPrinter=1
+        printMessage "Printer packages: ${printerPackages}"
+        continue
+      fi
+      ;;
+    quit)
+      printMessage "Work Office done!"
+      break
+      ;;
+    *)
+      echo "Invalid option $REPLY"
+      ;;
+    esac
+  done
+}
+
 askAddBluetoothSupport() {
   if ( dmesg | grep Bluetooth > /dev/null ); then
     printMessage "Bluetooth detected"
@@ -438,6 +487,11 @@ installPackages() {
     packagesToInstall+=("${multimediaPackages[*]}" "${audioVideoCodecGst}")
   fi
 
+  if ! [ -z "${workOfficePackages[*]}" ]; then
+    printMessage "Add work office packages"
+    packagesToInstall+=("${workOfficePackages[*]}")
+  fi
+
   if [[ $checkInstallBluetooth != 0 ]] ; then
     printMessage "Add bluetooth packages"
     packagesToInstall+=("${bluetoothPackages}")
@@ -476,6 +530,14 @@ installPackages() {
   if ( ! ls /etc/systemd/system/display-manager.service &>/dev/null ) ; then
     printMessage "Enable ly service"
     systemctl enable ly.service
+  fi
+
+  if [[ $checkInstallOnlyOffice != 0 ]] ; then
+    su - $(logname) -c "yay -Sy --nocleanmenu --nodiffmenu --noeditmenu --needed --noconfirm ${onlyOfficePackages}"
+  fi
+
+  if [[ $checkInstallPrinter != 0 ]] ; then
+    systemctl enable cups.socket
   fi
 
   if [[ $checkInstallDevelopmentArchlinux != 0 ]] ; then
@@ -571,6 +633,7 @@ prepare() {
   askAddBluetoothSupport
   askDesktopEnvironmentInstall
   askAddAppleKeyboardConfig
+  askInstallWorkOfficeUtils
   askInstallDevelopmentUtils
   askAddAlicePackages
   askAddAliceDarkTheme
