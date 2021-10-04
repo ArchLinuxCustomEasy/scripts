@@ -5,7 +5,7 @@
 # Author: Titux Metal <tituxmetal[at]lgdweb[dot]fr>
 # Url: https://github.com/ArchLinuxCustomEasy/scripts
 # Version: 1.0
-# Revision: 2021.09.17
+# Revision: 2021.10.04
 # License: MIT License
 
 diskList="$(lsblk -d -p -n -l -o NAME,SIZE -e 7,11)"
@@ -41,7 +41,7 @@ handleError() {
 }
 
 selectInstallDisk() {
-  printMessage "Installation disk"
+  printMessage "Installation disk: ${diskList}"
 
   PS3="Select the installation disk: "
   list=$(lsblk -d -p -n -l -o NAME -e 7)
@@ -103,7 +103,7 @@ makeDiskPartitions() {
 }
 
 selectRootPartition() {
-  printMessage "Root partition"
+  printMessage "Root partition: ${partitionList}"
   PS3="Select root partition: "
   list=$(lsblk -p -n -l -o NAME -e 7 $installationDisk)
   select rootPart in ${list}
@@ -123,7 +123,7 @@ selectRootPartition() {
 }
 
 selectBootPartition() {
-  printMessage "Boot partition"
+  printMessage "Boot partition: ${partitionList}"
   PS3="Select boot partition: "
   list=$(lsblk -p -n -l -o NAME -e 7 $installationDisk)
   select bootPart in ${list}
