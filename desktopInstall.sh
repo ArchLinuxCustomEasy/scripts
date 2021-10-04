@@ -64,7 +64,7 @@ commonFontPackages="terminus-font gnu-free-fonts noto-fonts ttf-bitstream-vera t
 # Web browser and common extensions
 webBrowserPackages="firefox firefox-i18n-fr firefox-ublock-origin firefox-dark-reader firefox-extension-passff firefox-extension-privacybadger torbrowser-launcher"
 # System Utilities
-commonSystemUtilsPackages="vim rsync htop neofetch xed alacritty rofi pcmanfm feh galculator"
+commonSystemUtilsPackages="vim rsync htop neofetch xed alacritty rofi pcmanfm feh galculator dex"
 # Archive utilities
 archiveUtilsPackages="xarchiver zip unzip unrar p7zip"
 # File system utilities
@@ -79,7 +79,7 @@ checkInstallDevelopmentArchlinux=0
 checkInstallDevelopmentDevops=0
 developmentWebPackages="nodejs yarn"
 developmentArchlinuxPackages="archiso libvirt ebtables dnsmasq bridge-utils openbsd-netcat virt-manager virt-viewer virt-install libguestfs edk2-ovmf qemu dhclient dmidecode spice-vdagent spice-gtk"
-developmentDevopsPackages="ansible docker docker-compose"
+developmentDevopsPackages="ansible docker docker-compose pass passff-host chezmoi"
 
 # Work Office Packages
 declare -a workOfficePackages
